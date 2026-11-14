@@ -1,0 +1,88 @@
+/* Styles of the Cabin page. Use the tokens of index.css. The value tiles (vr-) are in body.css. */
+.cb { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.cb h3, .cb p { margin: 0; }
+
+/* The title of the page: the state in words. */
+.cb-intro { display: flex; flex-direction: column; gap: 8px; padding-bottom: 4px; }
+.cb-state { font-size: 0.875rem; font-weight: 600; }
+.cb-headline { font-size: clamp(1.875rem, 7vw, 2.5rem); line-height: 1.1; }
+
+/* A card of the page, and the small label on top of it. */
+.cb-card { display: flex; flex-direction: column; gap: 18px; min-width: 0; padding: 28px; background: var(--surface); border-radius: var(--radius); }
+.cb .cb-label { font-size: 0.9375rem; font-weight: 500; line-height: 1.4; color: var(--text-muted); }
+.cb-quiet { font-size: 1rem; line-height: 1.45; color: var(--text-soft); }
+
+/* The top part: the worst value, what to do, who works on it. */
+.cb-problem { display: flex; flex-direction: column; gap: 22px; min-width: 0; padding: 28px; background: var(--surface); border-radius: var(--radius); }
+.cb-read { display: flex; flex-direction: column; gap: 14px; }
+.cb-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 10px; }
+.cb-title { font-size: 1.125rem; font-weight: 600; line-height: 1.3; }
+.cb-top .source { padding: 2px 10px; font-size: 0.8125rem; font-weight: 500; border-radius: 12px; }
+.cb-number { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.cb-digits { font-size: clamp(88px, 25vw, 128px); line-height: 0.9; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.cb-unit { font-size: 1.25rem; font-weight: 500; color: var(--text-muted); }
+
+/* The wide bar. The line and the dot come in one time when the page opens. */
+.cb-bar { display: flex; flex-direction: column; gap: 8px; padding-top: 2px; }
+.cb-bar-over, .cb-bar-under { position: relative; height: 18px; font-size: 0.8125rem; line-height: 18px; white-space: nowrap; color: var(--text-muted); }
+.cb-bar-over > span, .cb-bar-under > span { position: absolute; top: 0; }
+.cb-bar-limit-text { padding: 0 8px; color: var(--text); }
+.cb-bar-line { position: relative; height: 18px; }
+.cb-bar-line::before { content: ''; position: absolute; left: 0; right: 0; top: 8px; height: 2px; border-radius: 1px; background: var(--border-strong); }
+.cb-bar-zone { position: absolute; top: 7px; height: 4px; border-radius: 2px; background: var(--good); transform-origin: left center; animation: cb-zone 0.7s var(--ease) both; }
+.cb-bar-limit { position: absolute; top: -24px; width: 2px; height: 42px; margin-left: -1px; border-radius: 1px; background: var(--text); }
+.cb-bar-dot { position: absolute; top: 1px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; box-shadow: 0 0 0 4px var(--surface); animation: cb-dot 0.9s var(--ease) both; }
+@keyframes cb-zone { from { transform: scaleX(0); } }
+@keyframes cb-dot { from { left: 0; } }
+
+.cb-since { font-size: 1.125rem; line-height: 1.4; }
+
+.cb-steps { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--border); }
+.cb-steps li { display: flex; align-items: baseline; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 1.1875rem; font-weight: 500; line-height: 1.3; }
+.cb-step-number { flex: none; width: 18px; font-size: 1.75rem; line-height: 1; color: var(--text-muted); }
+
+.cb-own { display: flex; flex-direction: column; gap: 14px; }
+.cb-who { display: flex; flex-direction: column; gap: 4px; }
+.cb-who-label { font-size: 0.9375rem; line-height: 1.4; color: var(--text-muted); }
+.cb-who-name { font-size: 1.625rem; line-height: 1.15; }
+.cb-worker { display: flex; align-items: center; gap: 14px; padding: 4px 0; animation: pop 0.35s var(--ease) both; }
+.cb-worker-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cb-who-since, .cb-who-more { font-size: 1rem; line-height: 1.4; color: var(--text-muted); }
+.cb-who-more { padding-top: 2px; }
+.cb-who-more strong { font-weight: 500; color: var(--text); }
+.cb .cb-avatar { width: 44px; height: 44px; font-size: 0.8125rem; border-width: 3px; }
+.cb .cb-avatar-wait { border-style: dashed; }
+.cb .cb-action { width: 100%; min-height: 72px; font-size: 1.375rem; }
+.cb-hint { font-size: 0.9375rem; line-height: 1.4; text-align: center; color: var(--text-muted); }
+
+/* The effect on the crew: who was asked, and the answer. */
+.cb-asked { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.cb-asked li { display: flex; align-items: center; gap: 14px; min-height: 68px; padding: 12px 16px 12px 14px; background: var(--surface-2); border-radius: var(--radius-sm); animation: pop 0.35s var(--ease) both; }
+.cb-asked-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cb-asked-what { font-size: 0.9375rem; line-height: 1.4; }
+.cb-asked-what strong { font-weight: 600; }
+.cb-answer { font-size: 0.875rem; font-weight: 600; line-height: 1.4; }
+.cb-answer-none { font-weight: 500; color: var(--text-muted); }
+
+.cb-note { font-size: 0.8125rem; line-height: 1.6; color: var(--text-muted); }
+
+/* The Bridge look: no cards, thin lines, a large light number. */
+:root[data-look='bridge'] .cb-state { font-size: 1rem; }
+:root[data-look='bridge'] .cb-headline { font-size: clamp(2.375rem, 4.4vw, 3.25rem); line-height: 1.02; }
+:root[data-look='bridge'] .cb-problem { padding: 20px 0 0; background: transparent; border-top: 1px solid var(--text); border-radius: 0; }
+:root[data-look='bridge'] .cb-card { padding: 18px 0 0; background: transparent; border-top: 1px solid var(--border); border-radius: 0; }
+:root[data-look='bridge'] .cb .cb-label { font-size: 1.125rem; color: var(--text); }
+:root[data-look='bridge'] .cb-digits { font-size: clamp(104px, 31vw, 128px); letter-spacing: -4px; }
+:root[data-look='bridge'] .cb-bar-dot { box-shadow: 0 0 0 4px var(--bg); }
+:root[data-look='bridge'] .cb-top .source { border-radius: var(--radius-sm); }
+:root[data-look='bridge'] .cb-who-name { font-weight: 500; }
+:root[data-look='bridge'] .cb-asked li { min-height: 0; padding: 14px 0; background: transparent; border-top: 1px solid var(--border); border-radius: 0; }
+:root[data-look='bridge'] .cb-asked { gap: 0 40px; }
+:root[data-look='bridge'] .cb-asked-what { font-size: 1.0625rem; }
+:root[data-look='bridge'] .cb-answer { font-size: 1rem; }
+:root[data-look='bridge'] .cb-note { font-size: 0.875rem; }
+
+@media (max-width: 520px) {
+  .cb-card, .cb-problem { padding: 18px; }
+  .cb-problem { padding: 20px; }
+}

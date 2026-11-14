@@ -1,0 +1,359 @@
+/* Styles of the Alerts sheet (the inbox) and of the full-screen alert. Only the tokens of index.css. */
+
+/* ---------- The inbox ---------- */
+.al { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+/* The first heading is the title of the page. */
+.al-head { padding: 8px 6px 4px; }
+.al-head h1 { font-size: clamp(2.125rem, 3.2vw, 2.75rem); line-height: 1.1; text-wrap: balance; }
+.al-head p { margin: 6px 0 0; font-size: 1.0625rem; line-height: 1.4; color: var(--text-muted); }
+
+.al-section { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.al-section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 6px; font-size: 0.8125rem; font-weight: 600; white-space: nowrap; }
+.al-section-head h2 { font-family: var(--font-body); font-size: 0.9375rem; font-weight: 600; letter-spacing: 0; margin: 0; }
+
+/* One alert. "--al-line" and "--al-soft" change on the inverted card. */
+.al .al-card { --al-line: var(--border); --al-soft: var(--text-muted); display: flex; flex-direction: column; gap: 14px; padding: 22px 24px; animation: rise 0.35s var(--ease) both; }
+.al .al-card.card-inverse { --al-line: var(--inverse-border); --al-soft: var(--inverse-muted); }
+.al-soft { color: var(--al-soft); }
+.al-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.8125rem; line-height: 1.3; font-weight: 600; }
+.al-status { white-space: nowrap; }
+.al-meta .al-soft { flex: none; font-variant-numeric: tabular-nums; }
+/* The status color is too light on the light card. This makes it darker. */
+.al-card.card-inverse .al-status { filter: brightness(0.6) saturate(1.6); }
+.al-card .al-title { display: block; margin: 0; color: inherit; font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-spacing); font-size: 1.5rem; line-height: 1.15; overflow-wrap: anywhere; text-wrap: balance; }
+.al-card.al-lead .al-title { font-size: 1.75rem; line-height: 1.12; }
+.al-reading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 12px; }
+.al-value { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: -0.035em; font-size: 2.25rem; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.al-lead .al-value { font-size: 2.75rem; }
+.al-unit { font-size: 1.125rem; letter-spacing: 0; color: var(--al-soft); }
+.al-normal { font-size: 0.875rem; line-height: 1.4; }
+.al-normal .source { margin-left: 4px; }
+.al-card.card-inverse .source { color: var(--inverse-muted); border-color: var(--inverse-muted); }
+.al-detail { margin: 0; font-size: 0.9375rem; line-height: 1.45; color: var(--al-soft); }
+.al-todo { margin: 0; font-size: 0.9375rem; line-height: 1.45; }
+.al-why summary { min-height: 44px; display: flex; align-items: center; font-size: 0.875rem; text-decoration: underline; text-underline-offset: 3px; color: var(--al-soft); }
+.al-why summary::-webkit-details-marker { display: none; }
+.al-why summary:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.al-people { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid var(--al-line); border-bottom: 1px solid var(--al-line); font-size: 0.875rem; line-height: 1.35; }
+.al-avatars { display: flex; flex: none; }
+.al-avatar { box-sizing: border-box; width: 30px; height: 30px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; background: var(--border); color: var(--text); border: 2px solid var(--surface); }
+.al-avatar + .al-avatar { margin-left: -8px; }
+.al-card.card-inverse .al-avatar { background: var(--inverse-text); color: var(--inverse-bg); border-color: var(--inverse-bg); }
+
+/* The one main action of a card, and the small actions under it. */
+.al .al-card button.al-main { width: 100%; min-height: 60px; white-space: normal; text-align: center; padding: 8px 24px; font-size: 1.0625rem; }
+.al .al-card button.al-outline { min-height: 56px; background: transparent; border: 2px solid var(--text); color: var(--text); }
+.al .al-card button.al-outline:hover { background: var(--surface-2); }
+.al-small { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 20px; margin: -8px 0 -10px; }
+.al .al-card button.al-quiet { min-height: 44px; padding: 0 12px; background: transparent; border: 0; color: var(--al-soft); font-size: 0.875rem; font-weight: 500; text-decoration: underline; text-decoration-color: var(--al-line); text-underline-offset: 4px; }
+.al .al-card button.al-quiet:hover { color: inherit; text-decoration-color: currentColor; }
+.al-card.card-inverse button:focus-visible { outline-color: var(--inverse-text); }
+
+/* The open check-ups, and the rows that can wait. */
+.al-more-alerts { align-self: stretch; min-height: 56px; }
+.al .al-checkups { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; padding: 16px 24px; font-size: 1rem; line-height: 1.35; }
+.al-checkups .btn { flex: none; padding: 0 18px; font-size: 0.875rem; font-weight: 500; }
+.al ul.al-rows { padding: 6px 24px; gap: 0; }
+.al-row { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 16px 0; border-top: 1px solid var(--border); animation: rise 0.35s var(--ease) both; }
+.al-row:first-child { border-top: 0; }
+.al-row-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.al-row-title { display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: baseline; font-size: 1.0625rem; line-height: 1.3; font-weight: 500; overflow-wrap: anywhere; }
+.al-shape { display: inline-block; width: 22px; font-size: 0.75rem; }
+.al-row-sub { display: block; font-size: 0.875rem; line-height: 1.4; font-weight: 400; color: var(--text-muted); }
+.al-row .al-row-sub { padding-left: 22px; }
+.al-row-action { flex: none; padding: 0 18px; font-size: 0.875rem; font-weight: 500; }
+
+/* The read notifications. Quiet, with no action. */
+.al-read-list { gap: 0; padding: 0 6px; }
+.al-read-row { display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid var(--border); font-size: 0.875rem; line-height: 1.4; color: var(--text-muted); }
+.al-read-row:first-child { border-top: 0; padding-top: 2px; }
+.al-read-row > span:first-child { display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: baseline; }
+.al-read-time { flex: none; font-variant-numeric: tabular-nums; }
+.al-more { margin: 0; padding: 0 6px; }
+.al button.al-history { width: 100%; min-height: 56px; padding: 0 6px; background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; font-size: 0.9375rem; justify-content: space-between; gap: 12px; text-align: left; }
+.al button.al-history .muted { transition: color 0.16s ease; }
+.al button.al-history:hover .muted { color: var(--text); }
+
+@media (max-width: 759px) {
+  .al { gap: 20px; }
+  .al-head { padding: 4px 4px 0; }
+  .al-head p { font-size: 1rem; }
+  .al-section-head { padding: 0 4px; }
+  .al .al-card { padding: 22px; }
+  .al .al-checkups { padding: 16px 20px; }
+  .al ul.al-rows { padding: 6px 20px; }
+  .al-row { padding: 14px 0; gap: 12px; }
+  .al-row-title { grid-template-columns: 20px minmax(0, 1fr); font-size: 1rem; }
+  .al-shape { width: 20px; }
+  .al-row-sub { font-size: 0.8125rem; }
+  .al-row .al-row-sub { padding-left: 20px; }
+  .al-row-action { padding: 0 16px; }
+  .al-read-list, .al-more, .al button.al-history { padding-left: 4px; padding-right: 4px; }
+}
+
+/* ---------- The inbox in the Bridge look: no boxes, thin lines, larger type in Barlow ---------- */
+:root[data-look='bridge'] .al { gap: 30px; }
+:root[data-look='bridge'] .al-head { padding: 0; }
+:root[data-look='bridge'] .al-head h1 { font-size: clamp(2.25rem, 3.8vw, 3.375rem); line-height: 1.05; letter-spacing: -0.01em; }
+:root[data-look='bridge'] .al-head p { margin-top: 4px; font-size: 1.1875rem; }
+:root[data-look='bridge'] .al-section { gap: 0; }
+:root[data-look='bridge'] .al-section-head { padding: 0 0 10px; font-size: 1rem; align-items: baseline; }
+:root[data-look='bridge'] .al-section-head h2 { font-size: 1.0625rem; font-weight: 500; }
+:root[data-look='bridge'] .al .al-card { gap: 12px; padding: 22px 0; }
+/* The first alert has no light box here. A strong line and the light button mark it. */
+:root[data-look='bridge'] .al .al-card.card-inverse { --al-line: var(--border); --al-soft: var(--text-muted); background: transparent; color: var(--text); border-top: 2px solid var(--text); border-radius: 0; }
+:root[data-look='bridge'] .al-card.card-inverse .al-status { filter: none; }
+:root[data-look='bridge'] .al-card.card-inverse .source { color: var(--text-muted); border-color: var(--border-strong); }
+:root[data-look='bridge'] .al-card.card-inverse .source-real { color: var(--text); }
+:root[data-look='bridge'] .al-card.card-inverse .al-avatar { background: var(--border); color: var(--text); border-color: var(--bg); }
+:root[data-look='bridge'] .al .al-card.card-inverse button.al-main { background: var(--inverse-bg) !important; border-color: var(--inverse-bg) !important; color: var(--inverse-text) !important; }
+:root[data-look='bridge'] .al-card.card-inverse button:focus-visible { outline-color: var(--text); }
+:root[data-look='bridge'] .al-meta { font-size: 1rem; }
+:root[data-look='bridge'] .al-meta .al-soft { font-weight: 400; }
+:root[data-look='bridge'] .al-card .al-title, :root[data-look='bridge'] .al-card.al-lead .al-title { font-size: 1.875rem; line-height: 1.12; font-weight: 500; }
+:root[data-look='bridge'] .al-value { font-size: 3rem; font-weight: 300; letter-spacing: -0.02em; font-variant-numeric: normal; }
+:root[data-look='bridge'] .al-lead .al-value { font-size: 3.5rem; }
+:root[data-look='bridge'] .al-unit { font-size: 1.25rem; font-weight: 500; }
+:root[data-look='bridge'] .al-normal { font-size: 1rem; }
+:root[data-look='bridge'] .al-detail, :root[data-look='bridge'] .al-todo { font-size: 1.0625rem; line-height: 1.4; }
+:root[data-look='bridge'] .al-people { font-size: 1rem; }
+:root[data-look='bridge'] .al .al-card button.al-outline { border: 1px solid var(--text-muted); }
+:root[data-look='bridge'] .al .al-card button.al-quiet { font-size: 1rem; }
+:root[data-look='bridge'] .al .al-checkups { padding: 18px 0; font-size: 1.125rem; }
+:root[data-look='bridge'] .al-checkups .btn, :root[data-look='bridge'] .al-row-action { font-size: 1rem; }
+:root[data-look='bridge'] .al ul.al-rows { padding: 0; }
+:root[data-look='bridge'] .al-row { padding: 16px 0; }
+:root[data-look='bridge'] .al-row-title { font-size: 1.3125rem; line-height: 1.25; grid-template-columns: 26px minmax(0, 1fr); }
+:root[data-look='bridge'] .al-shape { width: 26px; font-size: 0.9375rem; }
+:root[data-look='bridge'] .al-row-sub { font-size: 1rem; }
+:root[data-look='bridge'] .al-row .al-row-sub { padding-left: 0; }
+:root[data-look='bridge'] .al-read-list, :root[data-look='bridge'] .al-more, :root[data-look='bridge'] .al button.al-history { padding-left: 0; padding-right: 0; }
+:root[data-look='bridge'] .al-read-row, :root[data-look='bridge'] .al button.al-history { font-size: 1rem; }
+@media (max-width: 759px) {
+  :root[data-look='bridge'] .al { gap: 26px; }
+  :root[data-look='bridge'] .al-head h1 { font-size: 2rem; }
+  :root[data-look='bridge'] .al-head p { font-size: 1.0625rem; }
+  :root[data-look='bridge'] .al-card .al-title, :root[data-look='bridge'] .al-card.al-lead .al-title { font-size: 1.75rem; }
+  :root[data-look='bridge'] .al-row-title { font-size: 1.1875rem; }
+}
+
+/* ---------- The full-screen alert ---------- */
+/* It lies over the sheet, which has the z-index 21. The text can scroll. The two answers always stay on the screen.
+   The phone shows one red screen with one dark card. A wide screen shows a red card, three dark cards and a light bar. */
+.al-over { position: fixed; inset: 0; z-index: 40; background: var(--alert-bg); color: var(--alert-text); animation: fade 0.22s ease both; }
+.al-over.is-leaving { animation: fade-out 0.17s ease both; pointer-events: none; }
+.al-over.is-leaving .al-over-col { transform: scale(0.985); transition: transform 0.17s ease; }
+.al-over-col { box-sizing: border-box; width: 100%; height: 100%; margin: 0 auto; display: flex; flex-direction: column; }
+.al-over-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: max(20px, env(safe-area-inset-top)) 16px 24px; }
+.al-over-grid { display: flex; flex-direction: column; gap: 18px; }
+.al-over-hero { display: flex; flex-direction: column; gap: 18px; min-width: 0; animation: pop 0.36s var(--ease) 0.04s both; }
+.al-over-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; padding: 0 6px; }
+.al-over-kind { display: flex; align-items: center; gap: 12px; }
+/* The square is the shape of an alert. */
+.al-over-mark { width: 28px; height: 28px; flex: none; background: var(--alert-text); }
+.al-over-word { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; }
+.al-over-area { display: none; }
+.al-over-count { font-size: 0.875rem; font-weight: 600; border: 2px solid currentColor; border-radius: var(--radius-pill); padding: 1px 10px; white-space: nowrap; }
+.al-over-where { font-size: 0.9375rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.al-over-what { display: flex; flex-direction: column; gap: 10px; padding: 6px 6px 0; }
+.al-over .al-over-title { margin: 0; font-size: clamp(2.25rem, 11.3vw, 2.75rem); line-height: 1.02; font-weight: 500; letter-spacing: -0.036em; overflow-wrap: anywhere; }
+.al-over-value { font-family: var(--font-display); font-weight: 500; font-size: 4rem; line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.al-over-unit { font-size: 1.25rem; letter-spacing: 0; }
+.al-over-normal { margin: 0; font-size: 1rem; line-height: 1.4; font-weight: 500; }
+
+/* The scale: a thick line for the normal zone, a mark where an alert starts, and a square for the value. */
+.al-over-range { display: none; flex-direction: column; gap: 8px; }
+.al-over-bar { position: relative; height: 36px; }
+.al-over-track { position: absolute; left: 0; right: 0; top: 17px; height: 2px; background: color-mix(in srgb, var(--alert-text) 38%, transparent); }
+.al-over-zone { position: absolute; top: 14px; height: 8px; background: var(--alert-text); }
+.al-over-tick { position: absolute; top: 0; width: 2px; height: 36px; margin-left: -1px; background: var(--alert-text); }
+.al-over-dot { position: absolute; top: 5px; width: 26px; height: 26px; margin-left: -13px; background: var(--alert-text); }
+.al-over-scale { position: relative; height: 1.4em; font-size: clamp(0.8125rem, 1.5vw, 1.25rem); line-height: 1.3; font-variant-numeric: tabular-nums; }
+.al-over-scale > span { position: absolute; top: 0; white-space: nowrap; }
+/* The label of the alert limit starts at its tick, and its box ends at the end of the scale. A label that is too long
+   for the box, for example in Portuguese, moves toward the middle of the scale, so the edge of the screen does not cut it.
+   The text direction of the box does this: a line that is too long starts at the end of the box. */
+.al-over-limit-high { direction: rtl; text-align: left; }
+.al-over-limit-low { text-align: right; }
+.al-over-scale-limit > span { display: inline-block; direction: ltr; unicode-bidi: isolate; }
+
+/* What it means, what to do, and who got the alert. On the phone they are the parts of one dark card. */
+.al-over-card { box-sizing: border-box; min-width: 0; padding: 22px; background: var(--alert-text); color: var(--text); border-radius: var(--radius); display: flex; flex-direction: column; animation: pop 0.36s var(--ease) 0.1s both; }
+.al-over-part { display: flex; flex-direction: column; gap: 6px; padding: 16px 0; border-top: 1px solid var(--border); min-width: 0; }
+.al-over-part:first-child { padding-top: 0; border-top: 0; }
+.al-over-part:last-child { padding-bottom: 0; }
+.al-over-do { gap: 10px; }
+.al-over-label { font-size: 0.8125rem; line-height: 1.4; font-weight: 600; color: var(--text-muted); }
+.al-over-text { font-size: 1.0625rem; line-height: 1.4; }
+.al-over-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.al-over-steps li { display: flex; align-items: flex-start; gap: 12px; }
+.al-over-steps .al-over-text { font-weight: 500; padding-top: 2px; }
+.al-over-number { width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--text); color: var(--alert-text); display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.al-over-brief { display: flex; align-items: center; gap: 10px; font-size: 0.875rem; line-height: 1.4; color: var(--text-muted); }
+.al-over .al-avatar { width: 32px; height: 32px; border-color: var(--alert-text); }
+.al-over-full { display: none; flex-direction: column; min-width: 0; }
+.al-over-claim { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-spacing); line-height: 1.1; text-wrap: balance; }
+.al-over-people { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.al-over-people li { display: flex; align-items: center; min-width: 0; }
+.al-over-person { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.al-over-name { font-weight: 500; }
+.al-over-note { color: var(--text-muted); }
+
+/* The two answers. Both close the alert. A soft edge shows that the text goes on under them. */
+.al-over-actions { position: relative; flex: none; display: flex; flex-direction: column; gap: 10px; padding: 8px 16px max(16px, env(safe-area-inset-bottom)); animation: rise 0.34s var(--ease) 0.16s both; }
+.al-over-actions::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 18px; background: linear-gradient(to top, var(--alert-bg), transparent); pointer-events: none; }
+.al-over .al-over-actions button { white-space: normal; text-align: center; text-wrap: balance; line-height: 1.2; border-radius: var(--radius-pill); font-weight: 600; }
+.al-over .al-over-actions button.al-over-main { min-height: 72px; padding: 10px 24px; background: var(--alert-text); color: var(--text); border: 0; font-size: 1.25rem; }
+.al-over .al-over-actions button.al-over-later { min-height: 56px; padding: 8px 24px; background: transparent; color: var(--alert-text); border: 2px solid var(--alert-text); font-size: 1.0625rem; }
+.al-over .al-over-actions button.al-over-main:hover { background: color-mix(in srgb, var(--alert-text) 88%, var(--text)); }
+.al-over .al-over-actions button.al-over-later:hover { background: color-mix(in srgb, var(--alert-text) 10%, transparent); }
+.al-over .al-over-actions button:focus-visible { outline: 3px solid var(--alert-text); outline-offset: 3px; }
+.al-over-for { order: 3; margin: 0; padding: 0 12px; font-size: 0.875rem; line-height: 1.4; text-align: center; }
+.al-over-for strong { display: none; }
+
+/* A wide screen, in the Soft dark look. The sizes also follow the height of the window, so all text fits at 900 px. */
+@media (min-width: 760px) {
+  .al-over { background: var(--bg); color: var(--text); }
+  .al-over-col { max-width: calc(1360px + 2 * clamp(16px, 3vw, 40px)); padding: clamp(16px, 2.6vh, 24px) clamp(16px, 3vw, 40px) clamp(16px, 3.4vh, 32px); gap: 20px; }
+  /* The round corners keep the cut soft when the text scrolls. */
+  .al-over-scroll { padding: 0; border-radius: calc(var(--radius) + 8px) calc(var(--radius) + 8px) var(--radius) var(--radius); scrollbar-width: thin; }
+  .al-over-grid { gap: 20px; min-height: 100%; }
+  .al-over-hero { box-sizing: border-box; padding: clamp(22px, min(3vw, 4.6vh), 44px); background: var(--alert-bg); color: var(--alert-text); border-radius: calc(var(--radius) + 8px); justify-content: space-between; gap: clamp(14px, 2.4vh, 22px); }
+  .al-over-head { padding: 0; gap: 8px 20px; }
+  .al-over-kind { gap: 14px; }
+  .al-over-mark { width: 32px; height: 32px; }
+  .al-over-word { font-size: 1.875rem; }
+  .al-over-where { font-size: 1.25rem; }
+  .al-over-what { padding: 0; }
+  .al-over .al-over-title { font-size: clamp(2.25rem, min(5.2vw, 7.6vh), 4.75rem); letter-spacing: -0.03em; text-wrap: balance; }
+  .al-over-value { font-size: clamp(5.5rem, min(15vw, 21vh), 13.5rem); line-height: 0.98; }
+  .al-over-unit { font-size: clamp(1.375rem, 2.4vw, 2.25rem); }
+  .al-over-normal { font-size: clamp(0.875rem, 1.15vw, 1rem); }
+  .al-over-in-words { display: none; }
+  .al-over-range { display: flex; }
+
+  .al-over-card { padding: 0; background: none; border-radius: 0; gap: 20px; animation: none; }
+  .al-over-part, .al-over-part:first-child, .al-over-part:last-child { box-sizing: border-box; padding: clamp(18px, min(2.2vw, 2.9vh), 30px); background: var(--surface); border: 0; border-radius: var(--radius); animation: rise 0.34s var(--ease) both; }
+  .al-over-do { order: -1; flex: 1 0 auto; gap: clamp(12px, 2vh, 18px); animation-delay: 0.1s; }
+  .al-over-means { gap: 10px; animation-delay: 0.15s; }
+  .al-over-who { animation-delay: 0.2s; }
+  .al-over-label { font-size: 1rem; font-weight: 500; }
+  .al-over-steps { gap: clamp(12px, 2vh, 18px); }
+  .al-over-steps li { gap: 18px; }
+  .al-over-number { width: clamp(34px, 4.8vh, 44px); height: clamp(34px, 4.8vh, 44px); font-size: clamp(1rem, 2.2vh, 1.25rem); }
+  .al-over-steps .al-over-text { font-size: clamp(1.1875rem, min(2vw, 2.5vh), 1.75rem); line-height: 1.25; padding-top: clamp(3px, 0.5vh, 5px); }
+  .al-over-means .al-over-text { font-size: clamp(1rem, min(1.55vw, 2.05vh), 1.375rem); }
+  .al-over-brief { display: none; }
+  .al-over-full { display: flex; gap: clamp(10px, 1.5vh, 14px); }
+  .al-over-claim { font-size: clamp(1.625rem, min(2.6vw, 3.5vh), 2.25rem); }
+  .al-over-people { gap: clamp(10px, 1.5vh, 14px); }
+  .al-over-people li { gap: 14px; }
+  .al-over .al-over-people .al-avatar { width: clamp(36px, 4.8vh, 44px); height: clamp(36px, 4.8vh, 44px); border: 0; font-size: 0.875rem; }
+  .al-over-name { font-size: 1.1875rem; line-height: 1.3; }
+  .al-over-note { font-size: 1rem; line-height: 1.35; }
+
+  .al-over-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: clamp(14px, 2.2vh, 24px) clamp(18px, 2.2vw, 30px); background: var(--inverse-bg); color: var(--inverse-text); border-radius: calc(var(--radius) + 8px); }
+  .al-over-actions::before { display: none; }
+  .al-over-for { order: 0; flex: 1 1 100%; min-width: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: 1rem; color: var(--inverse-muted); }
+  .al-over-for strong { display: block; font-size: 1.125rem; font-weight: 600; color: var(--inverse-text); }
+  .al-over .al-over-actions button.al-over-main { flex: 2 1 320px; min-height: clamp(64px, 9.6vh, 88px); padding: 8px 28px; background: var(--inverse-text); color: var(--inverse-bg); font-size: clamp(1.25rem, min(2.2vw, 3.4vh), 1.875rem); }
+  .al-over .al-over-actions button.al-over-later { flex: 1 1 280px; min-height: clamp(64px, 9.6vh, 88px); padding: 8px 28px; color: var(--inverse-text); border-color: var(--inverse-text); font-size: 1.25rem; }
+  .al-over .al-over-actions button.al-over-main:hover { background: color-mix(in srgb, var(--inverse-text) 86%, var(--inverse-bg)); }
+  .al-over .al-over-actions button.al-over-later:hover { background: color-mix(in srgb, var(--inverse-text) 8%, transparent); }
+  .al-over .al-over-actions button:focus-visible { outline-color: var(--inverse-text); }
+}
+/* A low window, such as a phone on its side: the answers get less room, so more of the alert shows. */
+@media (min-width: 760px) and (max-height: 520px) {
+  .al-over-col { padding: 10px 14px; gap: 10px; }
+  .al-over-actions { padding: 10px 14px; }
+  .al-over-for { display: none; }
+  .al-over .al-over-actions button.al-over-main, .al-over .al-over-actions button.al-over-later { min-height: 56px; font-size: 1.125rem; }
+}
+/* Two columns: the alert at the left, the three cards at the right. */
+@media (min-width: 960px) {
+  .al-over-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+  .al-over-for { flex: 1 1 260px; }
+}
+
+/* ---------- The full-screen alert in the Bridge look: black, thin lines, one very large light number ---------- */
+:root[data-look='bridge'] .al-over { background: var(--bg); color: var(--text); }
+:root[data-look='bridge'] .al-over-scroll { padding: max(22px, env(safe-area-inset-top)) 20px 8px; border-radius: 0; }
+:root[data-look='bridge'] .al-over-grid { gap: 26px; }
+:root[data-look='bridge'] .al-over-hero { padding: 0; background: none; color: var(--text); border-radius: 0; gap: 22px; }
+:root[data-look='bridge'] .al-over-head { padding: 0; align-items: baseline; gap: 2px 24px; }
+:root[data-look='bridge'] .al-over-kind { align-items: baseline; gap: 10px; }
+:root[data-look='bridge'] .al-over-mark { width: 0.72em; height: 0.72em; font-size: 1.75rem; background: var(--critical); }
+:root[data-look='bridge'] .al-over-word { font-size: 1.75rem; color: var(--critical); letter-spacing: 0; }
+:root[data-look='bridge'] .al-over-area { display: inline; font-size: 1.75rem; line-height: 1.2; font-weight: 500; }
+:root[data-look='bridge'] .al-over-count { font-size: 1rem; border-width: 1px; border-radius: var(--radius-sm); }
+:root[data-look='bridge'] .al-over-where { font-size: 1.125rem; font-weight: 400; color: var(--text-muted); }
+:root[data-look='bridge'] .al-over-where-area { display: none; }
+:root[data-look='bridge'] .al-over-what { padding: 0; gap: 18px; }
+:root[data-look='bridge'] .al-over .al-over-title { font-size: 2.375rem; line-height: 1.05; letter-spacing: 0; }
+:root[data-look='bridge'] .al-over-value { font-size: clamp(6.5rem, 33vw, 8.25rem); line-height: 0.82; font-weight: 300; letter-spacing: -0.03em; font-variant-numeric: normal; }
+:root[data-look='bridge'] .al-over-unit { font-size: 1.5rem; font-weight: 500; color: var(--text-muted); }
+:root[data-look='bridge'] .al-over-normal { font-size: 1rem; font-weight: 400; color: var(--text-muted); }
+:root[data-look='bridge'] .al-over-in-words { display: none; }
+:root[data-look='bridge'] .al-over-range { display: flex; }
+:root[data-look='bridge'] .al-over-track { background: var(--border); }
+:root[data-look='bridge'] .al-over-zone { top: 15px; height: 6px; background: var(--good); border-radius: 3px; }
+:root[data-look='bridge'] .al-over-tick { background: var(--text); }
+:root[data-look='bridge'] .al-over-dot { top: 4px; width: 28px; height: 28px; margin-left: -14px; background: var(--critical); }
+:root[data-look='bridge'] .al-over-scale { font-size: clamp(0.875rem, 1.5vw, 1.3125rem); color: var(--text-muted); }
+:root[data-look='bridge'] .al-over-scale-normal { color: var(--good); }
+:root[data-look='bridge'] .al-over-scale-limit { color: var(--text); }
+
+:root[data-look='bridge'] .al-over-card { padding: 0; background: none; border-radius: 0; gap: 0; animation: none; }
+:root[data-look='bridge'] .al-over-part, :root[data-look='bridge'] .al-over-part:first-child, :root[data-look='bridge'] .al-over-part:last-child { padding: 20px 0; background: none; border: 0; border-top: 1px solid var(--border); border-radius: 0; gap: 8px; animation: rise 0.34s var(--ease) both; }
+:root[data-look='bridge'] .al-over-do { order: -1; flex: 1 0 auto; gap: 16px; animation-delay: 0.1s; }
+:root[data-look='bridge'] .al-over-means { animation-delay: 0.15s; }
+:root[data-look='bridge'] .al-over-who { animation-delay: 0.2s; }
+:root[data-look='bridge'] .al-over-label { font-size: 1.125rem; font-weight: 400; }
+:root[data-look='bridge'] .al-over-steps { gap: 16px; }
+:root[data-look='bridge'] .al-over-steps li { align-items: baseline; gap: 22px; }
+/* A step has a large light number here, with no circle. */
+:root[data-look='bridge'] .al-over-number { display: block; width: 30px; height: auto; background: none; border-radius: 0; color: var(--text-muted); font-size: 2.5rem; line-height: 0.9; font-weight: 300; }
+:root[data-look='bridge'] .al-over-steps .al-over-text { font-size: 1.3125rem; line-height: 1.22; padding-top: 0; }
+:root[data-look='bridge'] .al-over-means .al-over-text { font-size: 1.125rem; }
+:root[data-look='bridge'] .al-over-brief { display: none; }
+:root[data-look='bridge'] .al-over-full { display: flex; gap: 10px; }
+:root[data-look='bridge'] .al-over-claim { font-size: 1.875rem; font-weight: 500; }
+:root[data-look='bridge'] .al-over-people { gap: 8px; }
+:root[data-look='bridge'] .al-over-people .al-avatar { display: none; }
+:root[data-look='bridge'] .al-over-person { flex-direction: row; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 16px; }
+:root[data-look='bridge'] .al-over-name { font-size: 1.25rem; }
+:root[data-look='bridge'] .al-over-note { font-size: 1.0625rem; }
+
+:root[data-look='bridge'] .al-over-actions { padding: 14px 20px max(18px, env(safe-area-inset-bottom)); background: var(--bg); color: var(--text); border-top: 1px solid var(--border); border-radius: 0; }
+:root[data-look='bridge'] .al-over-actions::before { display: block; background: linear-gradient(to top, var(--bg), transparent); bottom: calc(100% + 1px); }
+:root[data-look='bridge'] .al-over .al-over-actions button { border-radius: var(--radius-sm); }
+:root[data-look='bridge'] .al-over .al-over-actions button.al-over-main { background: var(--inverse-bg); color: var(--inverse-text); }
+:root[data-look='bridge'] .al-over .al-over-actions button.al-over-later { color: var(--text); border: 1px solid var(--text-muted); font-weight: 500; }
+:root[data-look='bridge'] .al-over .al-over-actions button.al-over-main:hover { background: color-mix(in srgb, var(--inverse-bg) 88%, var(--inverse-text)); }
+:root[data-look='bridge'] .al-over .al-over-actions button.al-over-later:hover { background: var(--surface-2); border-color: var(--text); }
+:root[data-look='bridge'] .al-over .al-over-actions button:focus-visible { outline-color: var(--text); }
+:root[data-look='bridge'] .al-over-for { color: var(--text-muted); }
+:root[data-look='bridge'] .al-over-for strong { color: var(--text); font-weight: 500; }
+@media (min-width: 760px) {
+  :root[data-look='bridge'] .al-over-col { padding: clamp(18px, 3vh, 28px) clamp(20px, 4vw, 56px) clamp(18px, 3.8vh, 36px); gap: clamp(18px, 3vh, 28px); }
+  :root[data-look='bridge'] .al-over-scroll { padding: 0; }
+  :root[data-look='bridge'] .al-over-grid { gap: 36px clamp(32px, 6vw, 88px); }
+  :root[data-look='bridge'] .al-over-hero { gap: 26px; }
+  :root[data-look='bridge'] .al-over-mark, :root[data-look='bridge'] .al-over-word, :root[data-look='bridge'] .al-over-area { font-size: clamp(1.75rem, 2.8vw, 2.5rem); }
+  :root[data-look='bridge'] .al-over-where { font-size: clamp(1.125rem, 1.6vw, 1.375rem); }
+  :root[data-look='bridge'] .al-over .al-over-title { font-size: clamp(2.25rem, min(4.6vw, 7.2vh), 4.125rem); }
+  :root[data-look='bridge'] .al-over-value { font-size: clamp(7rem, min(22vw, 30vh), 20rem); }
+  :root[data-look='bridge'] .al-over-unit { font-size: clamp(1.5rem, 2.6vw, 2.5rem); }
+  :root[data-look='bridge'] .al-over-part, :root[data-look='bridge'] .al-over-part:first-child, :root[data-look='bridge'] .al-over-part:last-child { padding: clamp(14px, 2.2vh, 20px) 0; }
+  :root[data-look='bridge'] .al-over-who { padding-bottom: 0; }
+  :root[data-look='bridge'] .al-over-number { font-size: clamp(2.5rem, min(4vw, 5.4vh), 3.5rem); }
+  :root[data-look='bridge'] .al-over-steps .al-over-text { font-size: clamp(1.3125rem, min(2.1vw, 2.7vh), 1.8125rem); }
+  :root[data-look='bridge'] .al-over-means .al-over-text { font-size: clamp(1.125rem, min(1.6vw, 2.1vh), 1.375rem); }
+  :root[data-look='bridge'] .al-over-claim { font-size: clamp(1.875rem, min(3vw, 3.9vh), 2.625rem); }
+  :root[data-look='bridge'] .al-over-actions { padding: clamp(16px, 2.6vh, 24px) 0 0; gap: 12px 24px; }
+  :root[data-look='bridge'] .al-over-actions::before { display: none; }
+  :root[data-look='bridge'] .al-over-for { font-size: 1.0625rem; }
+  :root[data-look='bridge'] .al-over-for strong { font-size: 1.1875rem; }
+  :root[data-look='bridge'] .al-over .al-over-actions button.al-over-main { min-height: clamp(64px, 10vh, 92px); font-size: clamp(1.3125rem, min(2.3vw, 3.6vh), 2rem); }
+  :root[data-look='bridge'] .al-over .al-over-actions button.al-over-later { min-height: clamp(64px, 10vh, 92px); font-size: 1.3125rem; }
+}

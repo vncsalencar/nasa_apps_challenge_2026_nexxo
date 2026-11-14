@@ -1,0 +1,123 @@
+/* Styles of the Log sheet. Only the tokens of index.css. */
+.lg { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+/* The first heading is the title of the page. */
+.lg-head { padding: 8px 6px 8px; }
+.lg-head h1 { font-size: clamp(2.125rem, 3.2vw, 2.75rem); line-height: 1.1; text-wrap: balance; }
+.lg-head p { margin: 6px 0 0; font-size: 1.0625rem; line-height: 1.4; }
+/* Text for a screen reader only. */
+.lg-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* What went to the flight surgeons on the ground. */
+.lg .lg-ground { display: flex; flex-direction: column; gap: 8px; padding: 22px 24px; }
+.lg-label { font-size: 0.8125rem; line-height: 1.4; font-weight: 600; color: var(--text-muted); }
+.lg-ground p { margin: 0; }
+.lg-ground-none { font-size: 1.0625rem; line-height: 1.4; }
+.lg-ground-count { font-size: 1.5rem; line-height: 1.15; text-wrap: balance; }
+.lg-ground-list { gap: 0; margin-top: 6px; }
+.lg-ground-list li { display: flex; gap: 14px; padding: 12px 0; border-top: 1px solid var(--border); font-size: 0.9375rem; line-height: 1.4; }
+.lg-ground-list li:last-child { padding-bottom: 0; }
+.lg-ground-time { flex: none; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.lg-shape { display: inline-block; width: 18px; font-size: 0.75rem; }
+
+.lg-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.lg-filters .pill { gap: 6px; font-weight: 500; }
+.lg-filters .pill[aria-pressed='true'] { font-weight: 600; }
+.lg-count { font-variant-numeric: tabular-nums; opacity: 0.6; }
+
+/* One mission day: a heading and the lines of that day. */
+.lg-day { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.lg-day + .lg-day { margin-top: 8px; }
+.lg-day .lg-day-head { margin: 0; padding: 0 6px; font-family: var(--font-body); font-size: 0.9375rem; line-height: 1.4; font-weight: 600; letter-spacing: 0; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
+.lg-day-note { font-size: 0.8125rem; font-weight: 400; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.lg ol.lg-list { list-style: none; margin: 0; padding: 8px 24px; gap: 0; }
+.lg-line { display: flex; gap: 14px; padding: 18px 0; border-top: 1px solid var(--border); animation: rise 0.35s var(--ease) both; }
+.lg-line:first-child { border-top: 0; }
+.lg-time { flex: none; width: 46px; padding-top: 5px; display: flex; flex-direction: column; gap: 2px; font-size: 0.9375rem; line-height: 1.35; font-weight: 600; font-variant-numeric: tabular-nums; }
+/* The next lines of the same hour keep the column, with no time in it. Their line starts after the column, so one hour reads as one group. */
+.lg-same .lg-time { visibility: hidden; }
+.lg-line.lg-same { border-top: 0; padding-top: 0; }
+.lg-same .lg-body { border-top: 1px solid var(--border); padding-top: 18px; }
+.lg-date { font-size: 0.75rem; font-weight: 400; color: var(--text-muted); white-space: nowrap; }
+.lg-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.lg-who { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.lg-avatar { width: 30px; height: 30px; flex: none; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+.lg-name { font-size: 0.875rem; font-weight: 600; }
+.lg-tag { font-size: 0.8125rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+.lg-tag.status-normal { color: var(--good); }
+.lg-tag.status-caution { color: var(--warning); }
+.lg-tag.status-alert { color: var(--critical); }
+.lg-text { font-size: 1.0625rem; line-height: 1.4; overflow-wrap: anywhere; }
+.lg-sent { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 0.8125rem; line-height: 1.4; }
+.lg-sent-label { margin-right: 2px; color: var(--text-muted); }
+.lg-chip { border: 1px solid var(--border-strong); border-radius: var(--radius-pill); padding: 2px 10px; white-space: nowrap; }
+.lg-older { align-self: flex-start; padding: 0 20px; font-size: 0.875rem; font-weight: 500; }
+
+/* Where the data comes from. Closed by default. */
+.lg-sources { border-top: 1px solid var(--border); padding: 6px 6px 0; }
+.lg-sources summary { min-height: 48px; display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.9375rem; transition: color 0.16s ease; }
+.lg-sources summary:hover, .lg-sources[open] summary { color: var(--text); }
+.lg-sources summary::before { content: '+'; display: inline-block; width: 14px; font-weight: 600; }
+.lg-sources[open] summary::before { content: '−'; }
+.lg-sources summary::-webkit-details-marker { display: none; }
+.lg-sources summary:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+.lg-sources[open] > :not(summary) { animation: rise 0.3s var(--ease) both; }
+.lg-sources p { margin: 0 0 8px; }
+.lg-sources ul { gap: 0; }
+.lg-sources li { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-top: 1px solid var(--border); }
+.lg-source-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; font-size: 0.9375rem; }
+
+@media (max-width: 759px) {
+  .lg { gap: 18px; }
+  .lg-head { padding: 4px 4px 2px; }
+  .lg-head p { font-size: 1rem; }
+  .lg .lg-ground { padding: 20px 22px; }
+  .lg-day .lg-day-head { padding: 0 4px; }
+  .lg ol.lg-list { padding: 6px 20px; }
+  .lg-line { gap: 12px; }
+  .lg-sources { padding-left: 4px; padding-right: 4px; }
+}
+
+/* ---------- The Bridge look: no boxes and no round marks. A large light time, then the text. ---------- */
+:root[data-look='bridge'] .lg { gap: 22px; }
+:root[data-look='bridge'] .lg-head, :root[data-look='bridge'] .lg-sources { padding-left: 0; padding-right: 0; }
+:root[data-look='bridge'] .lg-head h1 { font-size: clamp(2.25rem, 3.8vw, 3.375rem); line-height: 1.05; letter-spacing: -0.01em; }
+:root[data-look='bridge'] .lg-head p { margin-top: 4px; font-size: 1.125rem; }
+:root[data-look='bridge'] .lg .lg-ground { padding: 20px 0; gap: 6px; }
+:root[data-look='bridge'] .lg-label { font-size: 1rem; font-weight: 400; }
+:root[data-look='bridge'] .lg-ground-none { font-size: 1.3125rem; font-weight: 500; }
+:root[data-look='bridge'] .lg-ground-count { font-size: 1.875rem; font-weight: 500; }
+:root[data-look='bridge'] .lg-ground-list li { font-size: 1.0625rem; }
+:root[data-look='bridge'] .lg-filters .pill { font-size: 1rem; padding: 0 18px; }
+/* The selected filter is light with dark text in both looks. */
+:root[data-look='bridge'] .lg-filters button[aria-pressed='true'] { background: var(--inverse-bg); border-color: var(--inverse-bg); color: var(--inverse-text); }
+:root[data-look='bridge'] .lg-day { gap: 0; }
+:root[data-look='bridge'] .lg-day .lg-day-head { padding: 0 0 10px; font-size: 1.0625rem; font-weight: 500; }
+:root[data-look='bridge'] .lg-day-note { font-size: 1rem; }
+:root[data-look='bridge'] .lg ol.lg-list { padding: 0; }
+:root[data-look='bridge'] .lg-line { flex-wrap: wrap; gap: 6px 24px; padding: 20px 0; }
+:root[data-look='bridge'] .lg-time { flex: 0 0 104px; width: auto; padding-top: 0; gap: 6px; font-size: 2.375rem; line-height: 1; font-weight: 300; letter-spacing: -0.01em; }
+:root[data-look='bridge'] .lg-date { font-size: 0.9375rem; letter-spacing: 0; }
+:root[data-look='bridge'] .lg-body { flex: 1 1 300px; gap: 6px; }
+:root[data-look='bridge'] .lg-line.lg-same { padding-top: 0; }
+:root[data-look='bridge'] .lg-same .lg-body { padding-top: 20px; }
+:root[data-look='bridge'] .lg-who { align-items: baseline; gap: 2px 6px; }
+:root[data-look='bridge'] .lg-avatar { display: none; }
+/* The status comes first here, then the name. */
+:root[data-look='bridge'] .lg-name { order: 2; font-size: 1rem; font-weight: 400; color: var(--text-muted); }
+:root[data-look='bridge'] .lg-name::before { content: '· '; }
+:root[data-look='bridge'] .lg-tag { font-size: 1rem; }
+:root[data-look='bridge'] .lg-text { font-size: 1.3125rem; line-height: 1.3; font-weight: 500; }
+:root[data-look='bridge'] .lg-sent { gap: 0 5px; font-size: 1rem; }
+:root[data-look='bridge'] .lg-sent-label { margin-right: 0; }
+/* The names are plain text with commas here, not chips. */
+:root[data-look='bridge'] .lg-chip { border: 0; border-radius: 0; padding: 0; }
+:root[data-look='bridge'] .lg-chip:not(:last-child)::after { content: ','; }
+:root[data-look='bridge'] .lg-older, :root[data-look='bridge'] .lg-sources summary, :root[data-look='bridge'] .lg-source-head { font-size: 1rem; }
+@media (max-width: 759px) {
+  :root[data-look='bridge'] .lg-head h1 { font-size: 2rem; }
+  :root[data-look='bridge'] .lg-head p { font-size: 1.0625rem; }
+  /* The time is over the text on a phone. A line of the same hour has no time row. */
+  :root[data-look='bridge'] .lg-time { flex: 1 0 100%; flex-direction: row; align-items: baseline; gap: 10px; font-size: 2.25rem; }
+  :root[data-look='bridge'] .lg-same .lg-time { display: none; }
+  :root[data-look='bridge'] .lg-text { font-size: 1.1875rem; }
+}
