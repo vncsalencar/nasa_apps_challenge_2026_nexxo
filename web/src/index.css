@@ -1,0 +1,319 @@
+/* The tokens of the two looks. Every screen uses these names, so it works in both looks.
+   "Soft dark" is the default. "Bridge" is the instrument look: black, large light numbers, almost no boxes. */
+:root {
+  color-scheme: dark;
+  --bg: #0d0c0b;
+  --surface: #171614;
+  --surface-2: #1f1d1a;
+  --border: #2a2723;
+  --border-strong: #4a453c;
+  --text: #f6f2ea;
+  --text-soft: #d8d2c6;
+  --text-muted: #a8a196;
+  /* The inverted card for the one main action. */
+  --inverse-bg: #f6f2ea;
+  --inverse-text: #14120f;
+  --inverse-muted: #5c564c;
+  --inverse-border: #d9d2c3;
+  /* Status colors. Each one always comes with a shape and a word. */
+  --good: #7ddba3;
+  --warning: #f5b955;
+  --critical: #ff7a66;
+  --alert-bg: #ff7a66;
+  --alert-text: #14120f;
+  --series: #f6f2ea;
+  --grid: #24211d;
+  --axis: #4a453c;
+  --radius: 28px;
+  --radius-sm: 18px;
+  --radius-pill: 999px;
+  --font-display: 'Sora', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, 'Segoe UI', sans-serif;
+  --display-weight: 500;
+  --display-spacing: -0.03em;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  /* The side margin of a page, and the curve of each movement. */
+  --gutter: 40px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+}
+:root[data-look='bridge'] {
+  --bg: #000000;
+  --surface: #000000;
+  --surface-2: #0d0d0d;
+  --border: #262626;
+  --border-strong: #404040;
+  --text: #ffffff;
+  --text-soft: #d4d4d4;
+  --text-muted: #9a9a9a;
+  --inverse-bg: #ffffff;
+  --inverse-text: #000000;
+  --inverse-muted: #525252;
+  --inverse-border: #d4d4d4;
+  --good: #4ade80;
+  --warning: #fbbf24;
+  --critical: #ff5a4d;
+  --alert-bg: #ff5a4d;
+  --alert-text: #000000;
+  --series: #ffffff;
+  --grid: #1a1a1a;
+  --axis: #404040;
+  --radius: 0px;
+  --radius-sm: 4px;
+  --font-display: 'Barlow', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --display-weight: 300;
+  --display-spacing: 0;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; background: var(--bg); }
+body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+::selection { background: var(--inverse-bg); color: var(--inverse-text); }
+a { color: var(--text); }
+h1, h2, h3 { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-spacing); margin: 0; }
+h1 { font-size: 2rem; line-height: 1.1; }
+h2 { font-size: 1.25rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+h3 { font-size: 0.875rem; font-family: var(--font-body); font-weight: 500; color: var(--text-muted); margin: 1rem 0 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+p { margin: 0.25rem 0 0.75rem; }
+.muted { color: var(--text-muted); }
+.small { font-size: 0.8125rem; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.display { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-spacing); }
+ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+[role='alert'] { color: var(--critical); }
+code { font-family: var(--mono); font-size: 0.75rem; color: var(--text-muted); }
+
+/* Buttons and inputs. At least 44px high, so a finger or a glove hits them. */
+button, .button, .btn, a.pill, a.tab, select, input:not([type='range']):not([type='checkbox']) {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 0 16px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+:root[data-look='bridge'] button, :root[data-look='bridge'] .btn, :root[data-look='bridge'] a.pill, :root[data-look='bridge'] select, :root[data-look='bridge'] input:not([type='range']):not([type='checkbox']) { border-radius: var(--radius-sm); background: transparent; border-color: var(--border-strong); }
+button, .button, .btn, a.pill, a.tab, select { cursor: pointer; }
+/* A control answers each touch: the color changes softly, and a press makes it a little smaller. */
+button, .button, .btn, a.pill, select, input { transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease, transform 0.12s ease; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button:active:not(:disabled), .btn:active, a.pill:active { transform: scale(0.97); }
+button:hover:not(:disabled), .button:hover, a.pill:hover { border-color: var(--text-muted); }
+button:disabled { opacity: 0.5; cursor: default; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, [role='button']:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+input:not([type='range']):not([type='checkbox']) { justify-content: flex-start; flex: 1; min-width: 180px; border-radius: var(--radius-sm); }
+/* The main action of a screen. */
+.primary, .btn-primary { background: var(--inverse-bg) !important; border-color: var(--inverse-bg) !important; color: var(--inverse-text) !important; font-weight: 600; }
+.btn-large { min-height: 60px; padding: 0 28px; font-size: 1.125rem; font-weight: 600; }
+.pill { font-size: 0.875rem; white-space: nowrap; }
+.pill[aria-pressed='true'], .chip.active, .tab.active { background: var(--inverse-bg); border-color: var(--inverse-bg); color: var(--inverse-text); font-weight: 600; }
+/* The Bridge rule for buttons is stronger than the rule above, so the selected state needs its own line there. */
+:root[data-look='bridge'] .pill[aria-pressed='true'], :root[data-look='bridge'] .segmented button[aria-pressed='true'] { background: var(--inverse-bg); border-color: var(--inverse-bg); color: var(--inverse-text); }
+.pill[aria-pressed='true'] [class^='status-'] { filter: brightness(0.7) saturate(1.4); }
+.chip { font-size: 0.875rem; min-height: 44px; }
+.segmented { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill); }
+:root[data-look='bridge'] .segmented { border-radius: var(--radius-sm); }
+.segmented button { border: 0; background: transparent; min-height: 40px; font-size: 0.875rem; }
+.segmented button[aria-pressed='true'] { background: var(--inverse-bg); color: var(--inverse-text); font-weight: 600; }
+
+/* Status: a shape, a word, and a color. */
+.status-normal { color: var(--good); }
+.status-caution { color: var(--warning); }
+.status-alert { color: var(--critical); }
+.status-bg-normal { background: var(--good); }
+.status-bg-caution { background: var(--warning); }
+.status-bg-alert { background: var(--critical); }
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.8125rem; font-weight: 600; white-space: nowrap; }
+.badge.live { color: var(--good); }
+.source { font-size: 0.75rem; color: var(--text-muted); border: 1px dashed var(--border-strong); border-radius: 10px; padding: 1px 8px; white-space: nowrap; }
+.source-real { color: var(--text); border-style: solid; }
+.count { background: var(--warning); color: #14120f; border-radius: 10px; font-size: 0.75rem; font-weight: 700; padding: 0 7px; }
+
+/* The card. In the Bridge look a card has no box, only a thin line on top. */
+.card, .panel { background: var(--surface); border-radius: var(--radius); padding: 24px; min-width: 0; }
+:root[data-look='bridge'] .card, :root[data-look='bridge'] .panel { background: transparent; border-top: 1px solid var(--border); padding: 20px 0; }
+.card-inverse { background: var(--inverse-bg); color: var(--inverse-text); border-radius: var(--radius); padding: 24px; min-width: 0; }
+.card-inverse .muted { color: var(--inverse-muted); }
+.card-inverse button, .card-inverse .btn { background: transparent; color: var(--inverse-text); border: 2px solid var(--inverse-text); }
+.card-inverse .btn-primary { background: var(--inverse-text) !important; color: var(--inverse-bg) !important; border-color: var(--inverse-text) !important; }
+
+/* The range bar: a thin line, the normal zone, and a dot for the value. */
+.range { position: relative; display: block; height: 16px; width: 100%; }
+.range-track { position: absolute; left: 0; right: 0; top: 6px; height: 4px; border-radius: 2px; background: var(--border); }
+.range-zone { position: absolute; top: 6px; height: 4px; border-radius: 2px; background: var(--good); opacity: 0.55; }
+.range-usual { position: absolute; top: 1px; width: 2px; height: 14px; margin-left: -1px; background: var(--text-muted); }
+.range-dot { position: absolute; top: 0; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; border: 3px solid var(--surface); }
+
+/* The body figure. A normal part keeps the neutral color. */
+.body-figure { display: block; width: 100%; max-width: 260px; height: auto; margin: 0 auto; overflow: visible; }
+.body-part { cursor: pointer; stroke: var(--surface); stroke-width: 1; }
+.body-normal { fill: var(--border-strong); }
+.body-caution { fill: var(--warning); }
+.body-alert { fill: var(--critical); }
+.body-part.selected { stroke: var(--text); stroke-width: 3; }
+.body-ring circle { fill: none; stroke: currentColor; stroke-width: 2; }
+
+/* The frame of the dashboard: a top bar that stays, the home page, the sheets, and on a phone
+   a bar at the bottom for the thumb. */
+.app { min-height: 100dvh; max-width: 1320px; margin: 0 auto; padding: 0 var(--gutter) 128px; display: flex; flex-direction: column; gap: 28px; }
+.app-top { position: sticky; top: 0; z-index: 10; margin: 0 calc(var(--gutter) * -1); padding: 12px var(--gutter); display: flex; align-items: center; gap: 12px 20px; background: color-mix(in srgb, var(--bg) 82%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3); box-shadow: 0 1px 0 color-mix(in srgb, var(--border) 70%, transparent); }
+.app-brand { display: flex; align-items: baseline; gap: 14px; flex: none; }
+.brand { font-family: var(--font-display); font-size: 1.375rem; font-weight: 600; letter-spacing: -0.03em; text-decoration: none; }
+.app-clock { font-size: 0.8125rem; color: var(--text-muted); display: inline-flex; gap: 0 4px; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-clock .badge { margin-left: 8px; }
+.app-nav { display: flex; gap: 2px; margin: 0 auto; }
+.app-nav .pill { min-height: 40px; padding: 0 14px; }
+.app-nav .pill:not([aria-pressed='true']) { background: transparent; border-color: transparent; color: var(--text-muted); }
+.app-nav .pill:not([aria-pressed='true']):hover { color: var(--text); background: var(--surface); }
+.app-tools { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.app-nav + .app-tools { margin-left: 0; }
+.app-views button { min-height: 36px; padding: 0 14px; }
+.app-views-row { display: none; align-items: center; gap: 12px; }
+.app-me { padding: 4px 10px 4px 4px; gap: 8px; background: var(--surface); }
+.app-me .icon { color: var(--text-muted); transition: transform 0.2s var(--ease); }
+.app-me[aria-expanded='true'] .icon { transform: rotate(180deg); }
+.app-me-name { font-size: 0.875rem; font-weight: 500; }
+.avatar { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; background: var(--surface-2); color: var(--text); border: 2px solid var(--border-strong); }
+.avatar.ring-normal { border-color: var(--good); }
+.avatar.ring-caution { border-color: var(--warning); }
+.avatar.ring-alert { border-color: var(--critical); }
+.app-main { flex: 1; min-width: 0; }
+.app-foot { padding-top: 16px; border-top: 1px solid var(--border); }
+.icon { flex: none; display: block; }
+
+/* The parts of the home page come in one after the other. */
+.app-main > * > * { animation: rise 0.5s var(--ease) both; }
+.app-main > * > *:nth-child(2) { animation-delay: 50ms; }
+.app-main > * > *:nth-child(3) { animation-delay: 100ms; }
+.app-main > * > *:nth-child(4) { animation-delay: 150ms; }
+.app-main > * > *:nth-child(5) { animation-delay: 200ms; }
+.app-main > * > *:nth-child(n + 6) { animation-delay: 250ms; }
+
+/* The menu of the crew chip: the crew member, the view, and the other pages. */
+.menu-backdrop { position: fixed; inset: 0; z-index: 34; background: rgba(0, 0, 0, 0.4); animation: fade 0.2s ease both; }
+.app-menu { position: fixed; z-index: 35; top: 68px; right: max(var(--gutter), calc((100vw - 1320px) / 2 + var(--gutter))); width: min(360px, calc(100vw - 24px)); max-height: calc(100dvh - 88px); overflow-y: auto; padding: 10px; display: grid; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65); transform-origin: top right; transition: opacity 0.18s ease, transform 0.22s var(--ease), visibility 0.22s; }
+.app-menu[data-open='false'] { visibility: hidden; opacity: 0; transform: translateY(-8px) scale(0.98); pointer-events: none; }
+.app-menu-mission { margin: 6px 10px 4px; display: grid; gap: 2px; }
+.app-menu-title { margin: 8px 10px 2px; font-size: 0.8125rem; color: var(--text-muted); }
+.app-crew, .app-menu-views { display: grid; gap: 2px; }
+.app-crew button, .app-menu-views button { width: 100%; min-height: 56px; padding: 8px 10px; gap: 12px; justify-content: flex-start; text-align: left; background: transparent; border-color: transparent; border-radius: var(--radius-sm); }
+.app-crew button:hover, .app-menu-views button:hover { background: var(--surface-2); }
+.app-crew button[aria-pressed='true'], .app-menu-views button[aria-pressed='true'] { background: var(--surface-2); border-color: var(--border-strong); }
+.app-crew-name { flex: 1; min-width: 0; display: grid; }
+.app-menu-views button { display: grid; gap: 2px; justify-items: start; align-content: center; }
+.app-langs { display: flex; margin: 0 2px; }
+.app-langs button { flex: 1; min-height: 40px; padding: 0 10px; }
+.app-menu-links { display: grid; gap: 2px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.app-menu-links > * { justify-content: flex-start; gap: 12px; padding: 0 12px; min-height: 48px; border-radius: var(--radius-sm); background: transparent; border-color: transparent; font-size: 0.9375rem; }
+.app-menu-links > *:hover { background: var(--surface-2); }
+.app-menu-links .icon { color: var(--text-muted); }
+
+/* A detail screen is a page of its own. It replaces the home page, in one calm column.
+   The class names "sheet" and "sheet-body" stay from the time when it was a panel. */
+.sheet { flex: 1; width: 100%; max-width: 760px; margin: 0 auto; min-width: 0; }
+.sheet-body { display: flex; flex-direction: column; gap: 18px; animation: rise 0.45s var(--ease) both; }
+
+/* The navigation of the phone. */
+.app-tabs { display: none; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes pop { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
+
+/* Shared pieces of the older pages: the simulator and the mission list. */
+.page { max-width: 1340px; margin: 0 auto; padding: 20px 28px; display: grid; gap: 16px; }
+.page.narrow { max-width: 760px; }
+.row { display: flex; gap: 8px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.row.spread { justify-content: space-between; }
+.mission-header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; }
+.clock { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.875rem; color: var(--text-muted); }
+.tab { gap: 10px; }
+.symptom-row, .mission-row { display: flex; gap: 8px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.mission-row { padding: 12px 0; border-top: 1px solid var(--border); }
+.checkups { display: grid; gap: 12px; }
+.checkup { border-radius: var(--radius-sm); padding: 16px; background: var(--surface-2); border: 1px solid var(--warning); }
+.checkup header { display: flex; flex-direction: column; margin-bottom: 6px; }
+.checkup header strong { font-size: 0.8125rem; color: var(--warning); }
+.checkup .question { font-family: var(--font-display); font-size: 1.375rem; font-weight: var(--display-weight); }
+.checkup .row { margin-bottom: 8px; }
+.notification { border-left: 3px solid var(--border-strong); background: var(--surface-2); border-radius: var(--radius-sm); padding: 12px 14px; display: grid; gap: 4px; }
+.notification p { margin: 0; }
+.notification.severity-1 { border-left-color: var(--warning); }
+.notification.severity-2 { border-left-color: var(--critical); }
+.notification.read { opacity: 0.6; }
+.history li { display: grid; grid-template-columns: 7.5rem 1fr; gap: 10px; font-size: 0.875rem; padding: 6px 0; border-top: 1px solid var(--border); }
+@media (max-width: 520px) { .history li { grid-template-columns: 1fr; gap: 0; } }
+.sources li { display: grid; gap: 2px; padding: 8px 0; border-top: 1px solid var(--border); }
+.check { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; cursor: pointer; }
+.check input { width: 22px; height: 22px; margin-top: 1px; accent-color: var(--text); flex: none; }
+.spaced { margin-top: 1.25rem; }
+.field { margin: 10px 0; }
+details summary { cursor: pointer; min-height: 28px; }
+.trend { margin: 0; min-width: 0; }
+.trend figcaption { display: none; }
+.tooltip { background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 8px; padding: 6px 10px; font-size: 0.8125rem; }
+.scenarios { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.scenario { flex-direction: column; align-items: flex-start; text-align: left; padding: 12px 16px; gap: 2px; border-radius: var(--radius-sm); }
+.slider { display: grid; gap: 4px; padding: 10px 0; border-top: 1px solid var(--border); }
+.slider input { width: 100%; height: 32px; accent-color: var(--text); }
+.offset-on { color: var(--warning); font-weight: 600; }
+.stub { display: grid; gap: 12px; justify-items: start; }
+
+/* A medium screen has no room for the view switch in the top bar. It gets its own line. */
+@media (max-width: 1319px) {
+  .app-tools .app-views { display: none; }
+  .app-views-row { display: flex; }
+}
+@media (max-width: 979px) {
+  :root { --gutter: 24px; }
+  .app-mission { display: none; }
+}
+/* The phone and the small tablet: the navigation moves to a bar at the bottom. */
+@media (max-width: 979px) {
+  .app { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
+  .app-top { padding-top: max(10px, env(safe-area-inset-top)); padding-bottom: 10px; }
+  .app-nav { display: none; }
+  .app-tabs { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--bg) 86%, transparent); -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3); border-top: 1px solid var(--border); }
+  .app-tabs button { flex-direction: column; gap: 2px; min-height: 52px; padding: 4px 0; border: 0; border-radius: 14px; background: transparent; font-size: 0.6875rem; font-weight: 500; color: var(--text-muted); }
+  .app-tabs button[aria-pressed='true'] { color: var(--text); }
+  .app-tab-icon { position: relative; width: 56px; height: 30px; display: grid; place-items: center; border-radius: var(--radius-pill); transition: background-color 0.2s ease; }
+  .app-tabs button[aria-pressed='true'] .app-tab-icon { background: var(--surface-2); }
+  .app-tab-icon .count { position: absolute; top: -3px; right: 2px; min-width: 18px; text-align: center; }
+
+  .menu-backdrop { background: rgba(0, 0, 0, 0.6); }
+  .app-menu { top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 86dvh; padding: 14px 14px calc(18px + env(safe-area-inset-bottom)); border-radius: var(--radius) var(--radius) 0 0; border-width: 1px 0 0; transform-origin: bottom center; }
+  .app-menu[data-open='false'] { transform: translateY(100%); opacity: 1; }
+}
+/* The phone: less margin, and a smaller top bar. */
+@media (max-width: 759px) {
+  :root { --gutter: 20px; }
+  .app { gap: 20px; }
+  .app-me-name { display: none; }
+  .app-brand { flex: 0 1 auto; min-width: 0; }
+  .app-me { padding-right: 6px; gap: 2px; }
+  .app-views-row .app-views { flex: 1; display: flex; }
+  .app-views-row .app-views button { flex: 1; padding: 0 8px; min-height: 40px; }
+  .card, .card-inverse, .panel { padding: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
+}
+/* A very small phone has no room for the clock in the top bar. The menu shows it. */
+@media (max-width: 379px) {
+  .app-clock { display: none; }
+}
