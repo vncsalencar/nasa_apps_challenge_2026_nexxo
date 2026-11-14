@@ -1,0 +1,21 @@
+# The production setup on the VPS. Caddy on the host sends nexxo.vncs.dev to this port.
+# Run from the root of the project: docker compose -f deploy/compose.yml up -d --build
+name: nexxo
+
+services:
+  app:
+    build: ..
+    restart: unless-stopped
+    # Loopback only. Docker opens published ports past the firewall of the host,
+    # so a port with no address would be public.
+    ports:
+      - "127.0.0.1:8085:3001"
+    volumes:
+      - nexxo-data:/data
+    # Optional secrets, for example ANTHROPIC_API_KEY for the insights.
+    env_file:
+      - path: ../.env
+        required: false
+
+volumes:
+  nexxo-data:

@@ -1,0 +1,35 @@
+services:
+  # The complete app, built as in production: docker compose up --build
+  app:
+    build: .
+    ports:
+      - "3001:3001"
+    volumes:
+      - nexxo-data:/data
+    # Optional, for the insights from a language model. Docker passes these on if you set them.
+    environment:
+      - ANTHROPIC_API_KEY
+      - LOCAL_LLM_BASE_URL
+      - LOCAL_LLM_API_KEY
+
+  # Development with live reload and no Node on your machine:
+  # docker compose --profile dev up dev
+  dev:
+    profiles: [dev]
+    image: node:22-slim
+    working_dir: /app
+    command: >
+      sh -c "npm install &&
+      npx concurrently -n server,web
+      'npm run dev -w server'
+      'npm run dev -w web'"
+    ports:
+      - "5173:5173"
+      - "3001:3001"
+    volumes:
+      - .:/app
+      - dev-node-modules:/app/node_modules
+
+volumes:
+  nexxo-data:
+  dev-node-modules:
