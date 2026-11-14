@@ -1,0 +1,130 @@
+/* Styles of the Companion home. All colors, fonts and radius values come from the tokens of index.css. */
+
+/* The talk at the left, the side column at the right. On a narrow screen the side column moves below the talk. */
+.cp-home {
+  /* A message has three round corners and one small corner at the side of the speaker. */
+  --cp-round: max(0px, calc(var(--radius) - 6px));
+  --cp-corner: calc(var(--radius-sm) / 3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+.cp-home .cp-talk { flex: 999 1 560px; min-width: 0; padding: clamp(18px, 2.4vw, 32px); display: flex; flex-direction: column; gap: 22px; }
+/* The side column stays in the window while the long talk moves. */
+.cp-side { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 88px; }
+.cp-home p { margin: 0; }
+
+/* The top of the talk: who talks, and where the text comes from. */
+.cp-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.cp-who { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.cp-who > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cp-avatar { width: 52px; height: 52px; flex: none; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
+.cp-avatar svg { width: 26px; height: 26px; }
+.cp-title { display: block; margin: 0; font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.02em; }
+.cp-sub { font-size: 0.875rem; line-height: 1.4; color: var(--text-muted); }
+.cp-origin { display: inline-flex; align-items: center; min-height: 32px; max-width: 100%; padding: 5px 14px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 0.8125rem; font-weight: 600; line-height: 1.35; }
+
+/* The messages of Nexxo: at the left, as wide as their text, with a maximum width. */
+.cp-group { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; max-width: 660px; }
+.cp-turn { display: flex; flex-direction: column; gap: 22px; }
+.cp-bubble, .cp-value { max-width: 100%; background: var(--surface-2); border-radius: var(--cp-corner) var(--cp-round) var(--cp-round) var(--cp-corner); }
+.cp-group > .cp-bubble:first-child, .cp-group > .cp-value:first-child { border-top-left-radius: var(--cp-round); }
+.cp-group > .cp-bubble:last-child, .cp-group > .cp-value:last-child { border-top-left-radius: var(--cp-corner); border-bottom-left-radius: var(--cp-round); }
+.cp-group > .cp-bubble:only-child { border-radius: var(--cp-round) var(--cp-round) var(--cp-round) var(--cp-corner); }
+.cp-bubble { padding: 16px 20px; font-size: 1.125rem; line-height: 1.45; display: flex; flex-direction: column; gap: 6px; overflow-wrap: anywhere; }
+.cp-bubble strong { font-weight: 600; }
+.cp-bubble-label { font-size: 0.8125rem; font-weight: 600; line-height: 1.35; color: var(--text-muted); }
+.cp-home .cp-jump { min-height: 44px; padding: 0 18px; font-size: 0.9375rem; font-weight: 500; }
+.cp-divider { align-self: center; text-align: center; font-size: 0.8125rem; line-height: 1.4; color: var(--text-muted); }
+
+/* The answer of the crew member: at the right, in the light color. */
+.cp-me { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.cp-bubble-me { max-width: min(100%, 520px); padding: 14px 22px; background: var(--inverse-bg); color: var(--inverse-text); border-radius: var(--cp-round) var(--cp-round) var(--cp-corner) var(--cp-round); font-size: 1.125rem; font-weight: 500; line-height: 1.4; }
+.cp-stamp { font-size: 0.8125rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+/* A new turn of the talk comes in with a short movement. */
+.cp-turn > *, .cp-ask-block, .cp-ask-block + .cp-answer { animation: pop 0.35s var(--ease) both; }
+
+/* The card of one value inside the talk. */
+.cp-value { width: 100%; max-width: 520px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.cp-value-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 10px; }
+.cp-value-label { font-size: 0.875rem; line-height: 1.4; color: var(--text-muted); }
+.cp-value-label .source { margin-left: 4px; }
+.cp-value .badge { font-size: 0.875rem; }
+.cp-value-number { font-size: 2.5rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.cp-value-unit { font-size: 1.125rem; letter-spacing: 0; color: var(--text-muted); }
+.cp-value .range { margin-top: 4px; }
+.cp-value .range-dot { border-color: var(--surface-2); }
+.cp-legend { display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; line-height: 1.4; color: var(--text-muted); }
+.cp-legend-mark { width: 18px; height: 10px; flex: none; border-radius: 3px; background: color-mix(in srgb, var(--good) 38%, transparent); }
+.cp-home .cp-detail { align-self: flex-start; min-height: 44px; margin-top: 4px; padding: 0 18px; font-size: 0.9375rem; font-weight: 500; background: transparent; border-color: var(--border-strong); }
+.cp-home .cp-detail:hover { background: var(--surface); }
+
+/* The line of the last 7 days. The line has the color of the status, and the last point has its shape. */
+.cp-spark { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
+.cp-spark-plot { position: relative; height: 112px; touch-action: pan-y; }
+.cp-spark-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+.cp-spark-band { fill: var(--good); opacity: 0.14; }
+.cp-spark-line { fill: none; stroke: var(--series); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.cp-spark-alert .cp-spark-line { stroke: var(--critical); }
+.cp-spark-caution .cp-spark-line { stroke: var(--warning); }
+.cp-spark-cursor { stroke: var(--axis); stroke-width: 1; }
+.cp-spark-dot { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; pointer-events: none; }
+.cp-dot-normal { border-radius: 50%; }
+.cp-dot-caution { width: 14px; height: 13px; margin: -7px 0 0 -7px; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.cp-spark-dot-hover { border-radius: 50%; background: var(--text); box-shadow: 0 0 0 2px var(--surface-2); }
+.cp-spark-dates { display: flex; justify-content: space-between; gap: 8px; font-size: 0.75rem; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.cp-spark-read { color: var(--text); }
+
+/* The message of the language model. The label and the dashed line set it apart from the fixed messages. */
+.cp-model .cp-bubble { gap: 12px; border: 1px dashed var(--border-strong); border-radius: var(--cp-round) var(--cp-round) var(--cp-round) var(--cp-corner); }
+.cp-model-label { display: inline-flex; align-items: center; gap: 8px; font-size: 0.8125rem; font-weight: 600; color: var(--warning); }
+.cp-model-label svg { width: 16px; height: 16px; flex: none; }
+.cp-model-note, .cp-model-error { font-size: 0.8125rem; line-height: 1.45; }
+.cp-model-note { color: var(--text-muted); }
+.cp-steps { margin: 0; padding: 0; list-style: none; counter-reset: cp-step; display: flex; flex-direction: column; gap: 12px; }
+.cp-steps li { counter-increment: cp-step; position: relative; padding-left: 26px; display: flex; flex-direction: column; gap: 2px; font-size: 1rem; line-height: 1.45; }
+.cp-steps li strong { font-size: 1.125rem; font-weight: 500; }
+.cp-steps li::before { content: counter(cp-step); position: absolute; left: 0; top: 0; font-size: 1.125rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.cp-step-for { font-size: 0.8125rem; color: var(--text-muted); }
+.cp-home .cp-ask { min-height: 44px; padding: 0 18px; font-size: 0.9375rem; font-weight: 500; }
+
+/* The open question: the largest thing in the talk. */
+.cp-ask-block { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
+.cp-progress { font-size: 0.8125rem; font-weight: 600; color: var(--text-muted); }
+.cp-question { display: block; margin: 0; font-size: clamp(1.875rem, 3.4vw, 2.625rem); line-height: 1.1; letter-spacing: -0.025em; text-wrap: balance; overflow-wrap: anywhere; }
+.cp-home .cp-answer { padding: clamp(16px, 2vw, 24px); display: flex; flex-direction: column; gap: 16px; }
+.cp-answer-title { font-size: 1.125rem; font-weight: 600; line-height: 1.3; }
+.cp-replies { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.cp-home .cp-replies .btn { min-height: 68px; padding: 0 20px; font-size: 1.1875rem; font-weight: 600; line-height: 1.2; }
+
+/* The side column. */
+.cp-home .cp-panel { display: flex; flex-direction: column; gap: 14px; padding: 24px; }
+.cp-home .cp-panel:has(.cp-topics) { gap: 16px; }
+.cp-panel-title { margin: 0; font-size: 0.9375rem; line-height: 1.4; }
+.cp-panel-text { font-size: 1rem; line-height: 1.5; }
+.cp-panel-note { padding-top: 14px; border-top: 1px solid var(--border); font-size: 0.9375rem; line-height: 1.5; color: var(--text-muted); }
+.cp-topics { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+.cp-topic { display: flex; gap: 14px; align-items: flex-start; }
+.cp-mark { width: 32px; height: 32px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 600; background: var(--border); font-variant-numeric: tabular-nums; }
+.cp-mark svg { width: 14px; height: 14px; }
+.cp-topic-open .cp-mark { background: var(--inverse-bg); color: var(--inverse-text); }
+.cp-topic-next .cp-mark { background: transparent; border: 2px dashed var(--text-muted); color: var(--text-muted); }
+.cp-topic-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cp-topic-title { font-size: 1rem; font-weight: 500; line-height: 1.35; }
+.cp-topic-open .cp-topic-title { font-weight: 600; }
+.cp-topic-note { font-size: 0.875rem; line-height: 1.4; color: var(--text-muted); }
+.cp-topic-open .cp-topic-note { color: var(--text); }
+.cp-home .cp-all { min-height: 56px; padding: 0 20px; font-size: 1rem; font-weight: 500; background: transparent; }
+.cp-home .cp-all:hover { background: var(--surface); }
+
+/* The Bridge look has no filled boxes, so a thin line marks each message. */
+:root[data-look='bridge'] .cp-bubble, :root[data-look='bridge'] .cp-value { border: 1px solid var(--border); }
+:root[data-look='bridge'] .cp-home .cp-talk, :root[data-look='bridge'] .cp-home .cp-panel { padding: 20px 0; }
+:root[data-look='bridge'] .cp-avatar { background: transparent; }
+
+/* The phone: the side column is below the talk, so it does not need to stay in the window. */
+@media (max-width: 759px) {
+  .cp-side { position: static; }
+  .cp-home .cp-panel { padding: 20px; }
+}
