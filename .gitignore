@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.direnv/
+.env
+.env.local
+*.log
+# Files of the voice listener. web/scripts/copy-voice-assets.mjs copies them from node_modules.
+web/public/voice/
