@@ -1,0 +1,135 @@
+/* The simulator page. The presenter holds it on a phone, so the base layout is one column for 390px.
+   A tablet gets two columns and a laptop gets three. All colors, fonts and radii come from the tokens of index.css. */
+.sm-page { max-width: 1340px; margin: 0 auto; padding: 0 16px 32px; }
+
+/* The bar stays at the top, so the presenter always sees the clock and the result of the last tap. */
+.sm-bar { position: sticky; top: 0; z-index: 5; margin: 0 -16px; padding: max(10px, env(safe-area-inset-top)) 16px 10px; background: var(--bg); border-bottom: 1px solid var(--border); display: grid; gap: 6px; }
+.sm-bar-top { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 14px; }
+.sm-name { font-family: var(--font-display); font-weight: 600; font-size: 1.0625rem; letter-spacing: var(--display-spacing); display: inline-flex; align-items: center; gap: 8px; }
+.sm-name .source { font-family: var(--font-body); font-weight: 400; letter-spacing: 0; }
+.sm-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0 14px; font-size: 0.8125rem; color: var(--text-muted); }
+.sm-bar-links { display: none; margin-left: auto; gap: 16px; font-size: 0.875rem; }
+/* The language switch: two short buttons at the right end of the first line. */
+.sm-lang { margin-left: auto; padding: 2px; gap: 2px; }
+.sm-lang button { min-height: 32px; min-width: 44px; padding: 0 10px; font-size: 0.8125rem; border-radius: var(--radius-pill); }
+/* Two lines of space, so the page does not jump when a long confirmation arrives. */
+.sm-feedback { margin: 0; min-height: 2.6em; font-size: 0.9375rem; line-height: 1.3; font-weight: 500; display: flex; align-items: center; transition: opacity 0.2s 0.25s; }
+.sm-feedback.sm-failed { color: var(--critical); }
+.sm-feedback.sm-busy { opacity: 0.45; }
+.sm-flash { border-radius: 6px; animation: sm-flash 0.9s ease-out; }
+@keyframes sm-flash { from { background: var(--border-strong); box-shadow: 0 0 0 6px var(--border-strong); } to { background: transparent; box-shadow: 0 0 0 6px transparent; } }
+
+.sm-grid { display: grid; gap: 32px 28px; padding-top: 20px; grid-template-columns: minmax(0, 1fr); }
+.sm-section { min-width: 0; display: grid; gap: 12px; align-content: start; }
+.sm-section h2 { margin: 0; }
+.sm-second { margin-top: 20px !important; }
+.sm-group { display: grid; gap: 8px; min-width: 0; align-content: start; }
+.sm-label { display: block; font-size: 0.8125rem; color: var(--text-muted); }
+.sm-note { display: block; font-size: 0.8125rem; color: var(--text-muted); }
+
+/* Chips: a choice that shows its state. The shared class "pill" gives the inverted look when aria-pressed is true. */
+.sm-stage { display: grid; gap: 14px; }
+.sm-chips { display: grid; gap: 6px; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
+/* Four crew members fit in one row on a phone. */
+.sm-chips-crew { grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); }
+.sm-chips-crew .sm-chip { padding: 0 8px; gap: 6px; }
+.sm-chips-free { display: flex; flex-wrap: wrap; }
+.sm-chips-free .sm-chip { flex: 1 1 auto; }
+.sm-chip { min-height: 48px; padding: 0 12px; min-width: 0; }
+.sm-clip { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+/* A trigger tile: one large button. The whole tile is inverted while the simulator holds the value. */
+.sm-trigger-groups { display: grid; gap: 18px; }
+.sm-tile { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; justify-content: stretch; gap: 4px 12px; width: 100%; min-height: 92px; padding: 14px 18px; text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.sm-tile-name { font-family: var(--font-display); font-size: 1.125rem; font-weight: 600; letter-spacing: var(--display-spacing); }
+.sm-tile-state { font-size: 0.875rem; font-weight: 600; min-width: 48px; text-align: center; padding: 3px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-pill); color: var(--text-muted); }
+.sm-tile-line { grid-column: 1 / -1; font-size: 0.8125rem; color: var(--text-muted); }
+.sm-tile[aria-pressed='true'] { background: var(--inverse-bg); border-color: var(--inverse-bg); color: var(--inverse-text); }
+.sm-tile[aria-pressed='true'] .sm-tile-state { background: var(--inverse-text); border-color: var(--inverse-text); color: var(--inverse-bg); }
+.sm-tile[aria-pressed='true'] .sm-tile-line { color: var(--inverse-muted); }
+/* On the light tile the shape and the word tell the status. The status colors are too weak there. */
+.sm-tile[aria-pressed='true'] .badge { color: var(--inverse-text); }
+
+.sm-input { width: 100%; min-height: 52px; }
+.sm-wide { width: 100%; }
+
+/* What the app sent, and the open questions with their two answers. */
+.sm-sent-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 10px; }
+.sm-ask { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface); border-radius: var(--radius-sm); }
+.sm-ask > span > span { display: block; }
+.sm-question { font-weight: 500; }
+.sm-answers { display: flex; gap: 6px; }
+.sm-answer { min-height: 48px; min-width: 60px; font-weight: 600; }
+.sm-claim { padding: 10px 14px; background: var(--surface); border-radius: var(--radius-sm); }
+
+/* "Values" and "Setup" are closed at the start. The summary line is a large touch target. */
+.sm-details > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; min-height: 56px; padding: 8px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); list-style-position: inside; }
+.sm-details > summary h2 { display: inline-flex; }
+.sm-details > summary:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+.sm-details[open] > summary { margin-bottom: 14px; }
+.sm-details > .sm-label { margin: 16px 0 8px; }
+.sm-values { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); }
+.sm-value { display: grid; gap: 6px; padding: 12px 14px; background: var(--surface); border-radius: var(--radius-sm); min-width: 0; }
+.sm-value-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 10px; min-height: 28px; }
+.sm-value-name { font-weight: 500; }
+.sm-value-now { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sm-value-set { display: grid; grid-template-columns: 64px minmax(0, 1fr) 64px; align-items: center; gap: 14px; }
+.sm-step { min-height: 52px; padding: 0; font-size: 1.625rem; line-height: 1; border-radius: var(--radius-sm); }
+
+.sm-buttons { display: grid; gap: 8px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sm-buttons-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.sm-big { min-height: 56px; padding: 0 10px; font-weight: 600; border-radius: var(--radius-sm); text-align: center; }
+.sm-run { grid-column: 1 / -1; }
+.sm-run[aria-pressed='true'] { background: var(--inverse-bg); border-color: var(--inverse-bg); color: var(--inverse-text); }
+/* The hover rule of the shared buttons changes the border color, so this rule names the hover state too. */
+.sm-armed, .sm-armed:hover:not(:disabled) { border: 2px solid var(--warning); color: var(--warning); }
+
+.sm-setup { display: grid; gap: 24px; margin-top: 4px; }
+.sm-role { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.sm-role select, .sm-role input { width: 100%; }
+.sm-add { display: grid; gap: 8px; margin-top: 8px; }
+.sm-add input { width: 100%; }
+.sm-details .panel { margin-top: 16px; }
+.sm-foot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* A tablet: two columns. The two trigger groups stand side by side. */
+@media (min-width: 720px) {
+  .sm-page { padding: 0 28px 40px; }
+  .sm-bar { margin: 0 -28px; padding-left: 28px; padding-right: 28px; }
+  .sm-bar-links { display: flex; }
+  /* The links take the free space, and the language switch comes last. */
+  .sm-lang { order: 1; margin-left: 4px; }
+  .sm-foot { display: none; }
+  .sm-feedback { min-height: 1.6em; }
+  .sm-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: 'stage stage' 'trigger trigger' 'send sent' 'clock reset' 'values values' 'setup setup';
+  }
+  .sm-area-stage { grid-area: stage; }
+  .sm-area-trigger { grid-area: trigger; }
+  .sm-area-send { grid-area: send; }
+  .sm-area-sent { grid-area: sent; }
+  .sm-area-values { grid-area: values; }
+  .sm-area-clock { grid-area: clock; }
+  .sm-area-reset { grid-area: reset; }
+  .sm-area-setup { grid-area: setup; }
+  .sm-stage { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 28px; }
+  .sm-stage > :last-child { grid-column: 1 / -1; }
+  .sm-trigger-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+  .sm-setup { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+  .sm-role { grid-template-columns: minmax(0, 1fr) minmax(0, auto); align-items: center; gap: 10px; }
+  .sm-role input { min-width: 220px; }
+}
+
+/* A laptop: three columns. What the app sent stays next to the triggers. */
+@media (min-width: 1200px) {
+  .sm-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto auto 1fr;
+    grid-template-areas: 'stage stage stage' 'trigger trigger sent' 'send clock sent' 'send reset sent' 'values values values' 'setup setup setup';
+  }
+  .sm-stage { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.6fr); }
+  .sm-stage > :last-child { grid-column: auto; }
+  .sm-stage .sm-chips { display: flex; flex-wrap: wrap; }
+  .sm-stage .sm-chip { flex: 1 1 auto; }
+}
