@@ -4,13 +4,24 @@
 // simulator page sets the values and starts the routines.
 //
 // The sensors and their values are a simulation. No real suit data is behind them.
-import { useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { Suspense, lazy, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import { LEVELS, SENSORS, levelOf, risingSensors, type Level } from '../../../shared/helmet.ts'
 import { PageTabs } from '../components/PageTabs.tsx'
 import { fmt, t } from '../i18n.ts'
 import { helmetAlert, useHelmet } from '../helmet/useHelmet.ts'
 import './dashboard.css'
 import './helmet.css'
+
+// The 3D view loads only when a person selects it, because it brings a large 3D library.
+const Helmet3D = lazy(() => import('../helmet/Helmet3D.tsx'))
+const VIEW_KEY = 'nexxo-helmet-3d'
+function storedThreeD() {
+  try {
+    return localStorage.getItem(VIEW_KEY) === 'on'
+  } catch {
+    return false
+  }
+}
 
 const SHAPE = { normal: '●', caution: '▲', alert: '■' } as const
 const LEVEL_WORD: Record<Level, string> = { normal: t('normal'), caution: t('raised'), alert: t('high') }
@@ -27,6 +38,17 @@ const VISOR = 'M200 70C270 70 316 122 316 190C316 256 282 306 200 306C118 306 84
 export default function Helmet() {
   const { helmet, online } = useHelmet()
   const [selected, setSelected] = useState<string | null>(null)
+  // The 2D drawing or the 3D view. The browser keeps the choice.
+  const [threeD, setThreeD] = useState(storedThreeD)
+  const choose = (on: boolean) => {
+    setThreeD(on)
+    try {
+      localStorage.setItem(VIEW_KEY, on ? 'on' : 'off')
+    } catch {
+      // The choice then lasts until the page closes.
+    }
+  }
+  const toggle = (id: string) => setSelected((current) => (current === id ? null : id))
   const figure = useRef<SVGSVGElement>(null)
   // Where the pointer is over the drawing, from -1 to 1. The head turns a little toward it.
   const [look, setLook] = useState({ x: 0, y: 0 })
@@ -72,9 +94,19 @@ export default function Helmet() {
           <span aria-hidden="true">{SHAPE[alert.level]}</span> {alert.text}
         </p>
 
+        <div className="segmented hm-view" role="group" aria-label={t('View')}>
+          <button type="button" aria-pressed={!threeD} onClick={() => choose(false)}>2D</button>
+          <button type="button" aria-pressed={threeD} onClick={() => choose(true)}>3D</button>
+        </div>
+
+        {threeD && (
+          <Suspense fallback={<div className="hm-3d" />}>
+            <Helmet3D helmet={helmet} rising={rising} selected={selected} onSelect={toggle} onFail={() => choose(false)} />
+          </Suspense>
+        )}
         <svg
           ref={figure}
-          className="hm-figure"
+          className={threeD ? 'hm-figure hm-hide' : 'hm-figure'}
           viewBox="0 0 400 460"
           role="group"
           aria-label={t('Astronaut in a space suit helmet with CO2 sensors, front view')}
@@ -201,7 +233,7 @@ export default function Helmet() {
               const up = rising.includes(sensor.id)
               const on = selected === sensor.id
               const name = t(sensor.label)
-              const pick = () => setSelected((current) => (current === sensor.id ? null : sensor.id))
+              const pick = () => toggle(sensor.id)
               return (
                 <g
                   key={sensor.id}
@@ -250,7 +282,7 @@ export default function Helmet() {
               <p className="hm-detail-step">{LEVEL_STEP[chosenLevel]}</p>
             </>
           ) : (
-            <p className="hm-detail-step">{t('Select a sensor to read it.')}</p>
+            <p className="hm-detail-step">{threeD ? t('Select a sensor to read it. Drag the astronaut to turn it.') : t('Select a sensor to read it.')}</p>
           )}
         </div>
 
