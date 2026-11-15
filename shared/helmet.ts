@@ -50,16 +50,28 @@ export const ROUTINES: Routine[] = [
   { id: 'all', label: 'All sensors rise', about: 'The fan of the suit slows down, so CO2 rises in the whole helmet.', sensors: SENSOR_IDS, target: 3.8 },
 ]
 
+// An alert that the presenter sends to the helmet page while a sensor is above the red limit.
+//   info  tells the crew member that a value passed the limit, and that a manual action can be necessary.
+//   jet   advises the crew member to start a micro air jet, which lowers the CO2 at these sensors.
+// The micro air jet is an idea of this app: a jet with a small flow, because it is inside the
+// helmet, near the face. No real suit function is behind it.
+export const NOTICE_KINDS = ['info', 'jet'] as const
+export type NoticeKind = (typeof NOTICE_KINDS)[number]
+// sensors: the sensors that were above the red limit when the presenter sent the alert.
+export type Notice = { kind: NoticeKind; sensors: string[] }
+
 export type SensorState = { value: number; target: number }
 export type HelmetState = {
   sensors: Record<string, SensorState>
   // The routine that runs, or null.
   routine: string | null
   rate: number
+  // The alert that the presenter sent, or null.
+  notice: Notice | null
 }
 
 export function calmHelmet(rate = DEFAULT_RATE): HelmetState {
-  return { sensors: Object.fromEntries(SENSOR_IDS.map((id) => [id, { value: CALM_MMHG, target: CALM_MMHG }])), routine: null, rate }
+  return { sensors: Object.fromEntries(SENSOR_IDS.map((id) => [id, { value: CALM_MMHG, target: CALM_MMHG }])), routine: null, rate, notice: null }
 }
 
 const clamp = (value: number) => Math.min(VALUE_LIMITS.max, Math.max(VALUE_LIMITS.min, value))
@@ -83,7 +95,7 @@ export function clearHelmet(state: HelmetState): HelmetState {
 export function setSensor(state: HelmetState, id: string, mmHg: number): HelmetState {
   if (!(id in state.sensors)) return state
   const value = round(clamp(mmHg))
-  return { ...state, sensors: { ...state.sensors, [id]: { value, target: value } } }
+  return endOldNotice({ ...state, sensors: { ...state.sensors, [id]: { value, target: value } } })
 }
 
 // Moves each value toward its target for some seconds. Returns the same object if nothing moved.
@@ -100,7 +112,21 @@ export function stepHelmet(state: HelmetState, seconds: number): HelmetState {
     moved = true
     sensors[id] = { ...sensor, value: Math.abs(gap) <= most ? sensor.target : round(sensor.value + Math.sign(gap) * most) }
   }
-  return moved ? { ...state, sensors } : state
+  return moved ? endOldNotice({ ...state, sensors }) : state
+}
+
+// Sends an alert of one kind for the sensors that are above the red limit now.
+// With no sensor above the red limit, there is nothing to tell, so the state stays the same.
+export function sendNotice(state: HelmetState, kind: NoticeKind): HelmetState {
+  const sensors = sensorsAt(state, 'alert')
+  return sensors.length ? { ...state, notice: { kind, sensors } } : state
+}
+export function endNotice(state: HelmetState): HelmetState {
+  return state.notice ? { ...state, notice: null } : state
+}
+// The alert ends when no sensor is above the red limit.
+function endOldNotice(state: HelmetState): HelmetState {
+  return state.notice && sensorsAt(state, 'alert').length === 0 ? { ...state, notice: null } : state
 }
 
 // The sensors with a value that rises now, and the sensors by level, in the order of SENSORS.

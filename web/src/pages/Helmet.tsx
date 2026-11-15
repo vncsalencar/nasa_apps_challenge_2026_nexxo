@@ -143,6 +143,15 @@ export default function Helmet() {
         </section>
 
         <section className="hm-info" aria-label={t('Sensors')}>
+          {helmet.notice && (
+            <div className={`hm-notice hm-notice-${helmet.notice.kind}`} role="alert">
+              <strong>{helmet.notice.kind === 'jet' ? t('Advice: start a micro air jet') : t('Information')}</strong>
+              <span>
+                {t('CO2 passed {value} mmHg at these sensors: {names}.', { value: fmt(LEVELS.alert, 1), names: helmet.notice.sensors.map((id) => t(SENSORS.find((sensor) => sensor.id === id)?.label ?? id)).join(', ') })}{' '}
+                {helmet.notice.kind === 'jet' ? t('Start a micro air jet, with a small flow, at these places to lower the CO2.') : t('A manual action can be necessary.')}
+              </span>
+            </div>
+          )}
           <p className={`hm-banner hm-banner-${alert.level}`} role="status" aria-live="polite">
             <span aria-hidden="true">{SHAPE[alert.level]}</span> {alert.text}
           </p>

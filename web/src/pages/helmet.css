@@ -11,6 +11,14 @@
 .hm-banner-caution { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 60%, transparent); }
 .hm-banner-alert { color: var(--critical); border-color: var(--critical); }
 
+/* The alert that the presenter sent from the simulator page. */
+.hm-notice { display: grid; gap: 4px; padding: 16px 20px; border-radius: var(--radius-sm); border: 1px solid var(--critical); background: color-mix(in srgb, var(--critical) 14%, var(--surface)); line-height: 1.4; animation: hm-notice-in 0.3s ease; }
+.hm-notice strong { font-size: 1.0625rem; font-weight: 600; color: var(--critical); }
+.hm-notice-jet { border-color: var(--sim); background: color-mix(in srgb, var(--sim) 16%, var(--surface)); }
+.hm-notice-jet strong { color: var(--sim); }
+@keyframes hm-notice-in { from { opacity: 0; translate: 0 -6px; } }
+@media (prefers-reduced-motion: reduce) { .hm-notice { animation: none; } }
+
 .hm-text-normal { color: var(--good); }
 .hm-text-caution { color: var(--warning); }
 .hm-text-alert { color: var(--critical); }
@@ -86,3 +94,5 @@
 .hc-sensor-value.hm-normal { color: var(--good); }
 .hc-sensor-value.hm-caution { color: var(--warning); }
 .hc-sensor-value.hm-alert { color: var(--critical); }
+.hc-notice-red { border-color: var(--critical); }
+.hc-routine:disabled { opacity: 0.5; }

@@ -294,6 +294,15 @@ The simulator page (`/simulator`) controls it:
 - A routine raises some sensors step by step: "Mouth and neck rise", "Forehead rises", "Back of the head rises", and "All sensors rise". The page then shows, for example, "CO2 levels are rising at these sensors: Mouth, Neck."
 - "Back to calm" moves all sensors back step by step.
 
+**Alert to the crew.** When a sensor is above the red limit (3.0 mmHg), the simulator page tells the presenter that a manual action can be advisable. The presenter can then send an alert to the helmet page. The alert has two kinds:
+
+| Kind | What the helmet page shows |
+|---|---|
+| Information only | The sensors that passed the limit, and that a manual action can be necessary. |
+| Advice of a micro air jet | The sensors that passed the limit, and the advice to start a micro air jet at these places to lower the CO2. |
+
+The presenter can remove the alert. The alert also ends by itself when no sensor is above the limit. **Assumption:** the micro air jet is an idea of this app: a jet with a small flow, because it is inside the helmet, near the face. No real suit function is behind it, and the page does not model its effect.
+
 The helmet is the helmet of the space suit that Neil Armstrong used on Apollo 11. The model is the 3D scan of the Smithsonian Institution, National Air and Space Museum (https://3d.si.edu/object/3d/armstrong-space-suit:d8c63ba6-4ebc-11ea-b77f-2e728ce88125). The page draws the scan as it is and cuts it below the helmet. The model is in `web/public/models/armstrong.glb`, the two pictures are stills of the same model, and the files in `web/public/draco/` are the decoder of the 3D library for this model. In development, `window.__helmetShot(1100)` in the 3D view gives the two pictures and the sensor places again.
 
 **Usage terms of the model:** the scene file of the Smithsonian says "(c) Smithsonian Institution. All rights reserved." We did not find a CC0 mark for this model. The Smithsonian permits personal, educational, and other non-commercial use of such content, with a credit. So this project uses the model only for this non-commercial hackathon entry and shows the credit on the page. Do not use the model for a commercial purpose.

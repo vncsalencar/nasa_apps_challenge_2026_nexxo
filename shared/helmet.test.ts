@@ -1,7 +1,7 @@
 // Tests of the helmet sensors. Run: npm test
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { CALM_MMHG, ROUTINES, SENSOR_IDS, calmHelmet, clearHelmet, levelOf, risingSensors, sensorsAt, setSensor, startRoutine, stepHelmet } from './helmet.ts'
+import { CALM_MMHG, ROUTINES, SENSOR_IDS, calmHelmet, clearHelmet, endNotice, levelOf, risingSensors, sendNotice, sensorsAt, setSensor, startRoutine, stepHelmet } from './helmet.ts'
 
 describe('helmet sensors', () => {
   it('gives each sensor a color by its value', () => {
@@ -48,5 +48,25 @@ describe('helmet sensors', () => {
     assert.equal(state.routine, null)
     for (let second = 0; second < 10; second++) state = stepHelmet(state, 1)
     assert.ok(SENSOR_IDS.every((id) => state.sensors[id].value === CALM_MMHG))
+  })
+
+  it('sends an alert only while a sensor is above the red limit', () => {
+    const calm = calmHelmet()
+    assert.equal(sendNotice(calm, 'info'), calm)
+    const red = setSensor(setSensor(calm, 'mouth', 4), 'neck', 2.6)
+    assert.deepEqual(sendNotice(red, 'jet').notice, { kind: 'jet', sensors: ['mouth'] })
+    assert.equal(endNotice(sendNotice(red, 'info')).notice, null)
+  })
+
+  it('ends the alert when no sensor is above the red limit', () => {
+    const sent = sendNotice(setSensor(calmHelmet(), 'mouth', 4), 'info')
+    assert.equal(setSensor(sent, 'back', 2).notice?.kind, 'info')
+    assert.equal(setSensor(sent, 'mouth', 3).notice, null)
+    // The value goes down step by step, and the alert ends when it reaches the limit.
+    let state = clearHelmet(sent)
+    state = stepHelmet(state, 1)
+    assert.equal(state.notice?.kind, 'info')
+    state = stepHelmet(state, 100)
+    assert.equal(state.notice, null)
   })
 })

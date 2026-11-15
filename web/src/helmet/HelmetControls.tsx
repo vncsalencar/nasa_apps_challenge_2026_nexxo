@@ -1,7 +1,7 @@
 // The helmet controls of the simulator page: the routines that raise some sensors step by
 // step, and one slider for each sensor.
 import { useRef, useState, type CSSProperties } from 'react'
-import { RATES, ROUTINES, SENSORS, VALUE_LIMITS, levelOf, risingSensors, type HelmetState } from '../../../shared/helmet.ts'
+import { LEVELS, RATES, ROUTINES, SENSORS, VALUE_LIMITS, levelOf, risingSensors, sensorsAt, type HelmetState } from '../../../shared/helmet.ts'
 import { Icon } from '../components/Icon.tsx'
 import { fmt, t } from '../i18n.ts'
 import '../pages/helmet.css'
@@ -64,10 +64,48 @@ function SensorSlider({ id, label, helmet, run }: { id: string; label: string; h
   )
 }
 
+// The alert to the crew: when a sensor is above the red limit, the presenter can send an alert
+// to the helmet page. One kind only informs. The other kind advises a micro air jet.
+function NoticeSection({ helmet, run }: { helmet: HelmetState; run: SendHelmet }) {
+  const red = sensorsAt(helmet, 'alert')
+  const kind = helmet.notice?.kind
+  const limit = fmt(LEVELS.alert, 1)
+  return (
+    <section className={red.length ? 'sm-section hc-notice hc-notice-red' : 'sm-section hc-notice'} aria-labelledby="hc-notice">
+      <h2 id="hc-notice">{t('Alert to the crew')}</h2>
+      <p className="sm-hint" role="status">
+        {red.length
+          ? t('CO2 is above {value} mmHg at these sensors: {names}. A manual action can be advisable. You can send an alert to the helmet page.', {
+              value: limit,
+              names: red.map((id) => t(SENSORS.find((sensor) => sensor.id === id)?.label ?? id)).join(', '),
+            })
+          : t('No sensor is above {value} mmHg now. You can send an alert when a sensor is red.', { value: limit })}
+      </p>
+      <div className="hc-routines">
+        <button type="button" className="hc-routine" disabled={!red.length} aria-pressed={kind === 'info'} onClick={() => run({ notice: 'info' })}>
+          <strong>{t('Send for information only')}</strong>
+          <span>{t('Tells the crew member that the value passed the limit, and that a manual action can be necessary.')}</span>
+        </button>
+        <button type="button" className="hc-routine" disabled={!red.length} aria-pressed={kind === 'jet'} onClick={() => run({ notice: 'jet' })}>
+          <strong>{t('Send with the advice of a micro air jet')}</strong>
+          <span>{t('Advises the crew member to start a micro air jet, with a small flow, at these sensors, to lower the CO2.')}</span>
+        </button>
+      </div>
+      <div className="sm-row">
+        <button type="button" disabled={!helmet.notice} onClick={() => run({ notice: null })}>
+          {t('Remove the alert')}
+        </button>
+      </div>
+      <p className="sm-hint">{t('The alert ends by itself when no sensor is above the limit.')}</p>
+    </section>
+  )
+}
+
 export function HelmetControls({ helmet, run }: { helmet: HelmetState; run: SendHelmet }) {
   const rateText = (rate: number) => t('{rate} mmHg each second', { rate: fmt(rate, 2) })
   return (
     <>
+      <NoticeSection helmet={helmet} run={run} />
       <section className="sm-section" aria-labelledby="hc-routines">
         <h2 id="hc-routines">{t('Routines')}</h2>
         <p className="sm-hint">{t('A routine raises some sensors step by step. The helmet page then shows a short alert with the names of these sensors.')}</p>

@@ -1,7 +1,7 @@
 // The helmet sensors on the server: one state for all screens, its own stream, and its own
 // control route. It is apart from the simulator engine of the other two pages.
 import type { Express, Response } from 'express'
-import { RATES, ROUTINES, SENSOR_IDS, VALUE_LIMITS, calmHelmet, clearHelmet, setSensor, startRoutine, stepHelmet, type HelmetState } from '../../shared/helmet.ts'
+import { NOTICE_KINDS, RATES, ROUTINES, SENSOR_IDS, VALUE_LIMITS, calmHelmet, clearHelmet, endNotice, sendNotice, setSensor, startRoutine, stepHelmet, type HelmetState, type NoticeKind } from '../../shared/helmet.ts'
 
 const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
 
@@ -26,6 +26,17 @@ export function changeHelmet(state: HelmetState, body: unknown): HelmetState | {
       return { error: `set must be { id, mmHg } with id one of ${SENSOR_IDS.join(', ')} and mmHg from ${VALUE_LIMITS.min} to ${VALUE_LIMITS.max}.` }
     }
     next = setSensor(next, set.id as string, set.mmHg)
+  }
+  // notice: a kind sends an alert to the helmet page, and null removes the alert.
+  if ('notice' in input) {
+    if (input.notice === null) {
+      next = endNotice(next)
+    } else {
+      if (!NOTICE_KINDS.includes(input.notice as NoticeKind)) return { error: `notice must be null or one of ${NOTICE_KINDS.join(', ')}.` }
+      const sent = sendNotice(next, input.notice as NoticeKind)
+      if (sent === next) return { error: 'No sensor is above the red limit, so there is no alert to send.' }
+      next = sent
+    }
   }
   return next
 }
