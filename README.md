@@ -1,12 +1,19 @@
 # Nexxo
 
-Nexxo is a CO2 exposure panel for astronauts. It is a project for the NASA Space Apps Challenge 2026, challenge "Create Health Monitoring Software for Astronauts on Space Missions".
+Nexxo is health monitoring software for astronauts. It is a project for the NASA Space Apps Challenge 2026, challenge "Create Health Monitoring Software for Astronauts on Space Missions".
 
-CO2 builds up in a closed cabin. On the International Space Station, crews report headaches, fatigue, and slower work at CO2 values that are legal on Earth. Nexxo shows the cabin CO2, what NASA documents report at that value, and how much time is left before a limit.
+The app holds two ideas, so the team can test and compare them:
 
-## What the app does
+| Idea | Page | In one sentence |
+|---|---|---|
+| CO2 exposure | `/` | The cabin CO2 of the station from a real record, what NASA documents report at that value, and the time that is left before a limit. |
+| Trip forecast | `/trip` | A whole mission on a timeline with a map, and forecasts of the communication delay, the radiation dose, the cabin air, and the effects on the body. |
 
-The app has two pages.
+Both pages use the same server, the same simulator page (`/simulator`), the same math, and the same components. The section "How to compare the two ideas" has a short checklist.
+
+## The CO2 page: "CO2 exposure"
+
+CO2 builds up in a closed cabin. On the International Space Station, crews report headaches, fatigue, and slower work at CO2 values that are legal on Earth. The page shows the cabin CO2, what NASA documents report at that value, and how much time is left before a limit.
 
 **The dashboard** (the first page, `/`) has one panel, "CO2 exposure", with four parts:
 
@@ -17,7 +24,7 @@ The app has two pages.
 | Headache risk | The averages of 1 hour, 24 hours, and 7 days. Each average has its own reference. The gauge shows the odds of a headache, compared with the odds at a 7-day average of 2.5 mmHg. |
 | Time to limit | A countdown to 3.0 mmHg and to the start of each symptom band, from a model of the cabin. A chart shows the last 24 hours and the next 24 hours. |
 
-**The simulator** (`/simulator`) is for the presenter. No page links to it: type the address. It is made for a phone. Each control has an effect at once on every open dashboard.
+**The simulator** (`/simulator`) is for the presenter. No page links to it: type the address. It is made for a phone. Each control has an effect at once on every open page. It has two tabs: "CO2 exposure" with the controls below, and "Trip" with the controls of the trip page (the mission, the mission day, the solar cycle, a storm, the crew and its day, the scrubber, the oxygen generator, the Sabatier reactor, and the cabin volume). The two groups of settings do not change each other, so you can compare the two pages.
 
 | Control | Effect |
 |---|---|
@@ -133,6 +140,149 @@ What this tells:
 - The short rises of the record are faster than a fully mixed station permits, also with no CO2 removal at all. One sensor sees local effects: the air flow near it, people near it, and the cycle of the CDRA. This is why the panel says that the local exposure can be higher than the model.
 - With no other removal (one CDRA alone), the RMS error for the whole record is 0.97 mmHg.
 
+## The trip page: "Trip forecast"
+
+The page `/trip` is the second idea. It shows a whole mission on a timeline with a 2D map, and forecasts along the trip: the communication delay, the radiation dose, the CO2 and the O2 of the cabin, and the effects on the body. Drag the mission day, and each part follows. The simulator page has a tab "Trip" with the controls.
+
+| Part | What it shows |
+|---|---|
+| Mission picker | Ten mission presets. Each one has a badge and its sources. |
+| Mission day | The phases of the flight with a cursor that you can drag. |
+| Map | Where the spacecraft is: a map with the Sun in the middle for Mars, with the Earth in the middle for the Moon, and a ground track for the station with the South Atlantic Anomaly. |
+| Communication delay | The one-way light time between the Earth and the spacecraft, from the real positions, and a sentence such as "Ground support delayed 12 min". |
+| Radiation dose | The dose of each day and the total dose, with the instrument, the shielding, and the solar cycle of the measurement. In mSv, the NASA career limit of 600 mSv is a line. |
+| Compare missions | The total dose of 2 or 3 missions on one chart, in one unit only. |
+| Effects on the body | A body figure in 2D or 3D. Color shows where the radiation dose, the CO2, or the O2 can affect the astronaut. A tap on a part shows what a source reports there and what the crew can do. |
+| Cabin air | The CO2 and the O2 of the cabin around the cursor, with the daily pattern of sleep and exercise, and a countdown after a failure. |
+| Headache risk, time to limit | The same two cards as on the CO2 page, fed by the CO2 forecast of the trip. |
+| Model check | For the station preset only: the cabin model next to the real CO2 record, with the error. |
+
+Each chart has a badge:
+
+| Badge | Meaning |
+|---|---|
+| REAL DATA | A measured series, or a real trajectory. |
+| REAL RATE (published mean) | The mean of a measurement, from a paper. |
+| MODELLED | Computed by a model of this app. |
+| PROXY | A real value from another mission, where this mission has none. |
+
+### Mission presets
+
+Each preset is one file in `shared/trip/presets/`. The dose rates are for each day.
+
+| Preset | Badge | Trajectory | Radiation |
+|---|---|---|---|
+| ISS, 6 months | REAL DATA | Ground track from the CelesTrak orbit elements | NASA EDA, RR-9: 30 real days, mean 0.32 mGy. No value in mSv. |
+| Moon: Artemis I (2022, uncrewed) | REAL RATE | JPL Horizons | Orion HERA sensors (George and others, Nature 2024): 1.10 ± 0.14 mSv after the radiation belts. |
+| Moon: Artemis II (2026, crewed) | REAL TRAJECTORY + PROXY | JPL Horizons | NASA published no crew dose yet. The cruise uses the Artemis I rate as a proxy. The first phase has no data. |
+| Lunar orbit, 100 km | REAL RATE | Simple orbit at the Moon | Chandrayaan-1 RADOM (ISRO orbiter, Bulgarian instrument): 0.227 mGy. |
+| Lunar surface stay | REAL RATE | Fixed place on the Moon | Chang'E 4 LND (Zhang and others, Science Advances 2020): 1.369 ± 0.254 mSv. |
+| Lunar Gateway | PROXY | At the Moon | No flown data. Artemis I rate as a proxy. |
+| Mars: MSL/Curiosity cruise (first preset) | REAL DATA | JPL Horizons, 26 November 2011 to 6 August 2012 | MSL RAD inside the spacecraft (Zeitlin and others, Science 2013): 1.84 ± 0.33 mSv. |
+| Mars: ExoMars TGO cruise (2016) | REAL DATA | JPL Horizons, 219 days | Liulin-MO (Semkova and others, Icarus 2018): 0.381 ± 0.038 mGy. The real daily series of 90 days is in the chart in mGy. |
+| Mars: crewed reference | REAL RATE + MODELLED | MSL path, a surface stay, and a mirrored return | MSL RAD cruise rate, 0.64 ± 0.12 mSv on the surface of Mars (Hassler and others, Science 2014), and a solar-cycle choice. |
+| Custom | MODELLED | A transfer orbit that this app computes | Your own rate. |
+
+A value that we could not check in its source is empty, and the page shows "no data". The files `docs/sources-lunar.md`, `docs/sources-mars-iss.md`, `docs/sources-life-support.md`, and `docs/sources-body-effects.md` hold the exact quote, the place in the source, and the address for each number, and the list of what we could not confirm.
+
+### Data sources and credit lines
+
+| Data | Source and credit |
+|---|---|
+| Cabin CO2 and radiation of the station | Data and visualizations are courtesy of the Environmental Data Application (EDA) (https://visualization.osdr.nasa.gov/eda/). |
+| Trajectories of MSL, ExoMars TGO, Artemis I, Artemis II, and the places of the Earth, Mars, and the Moon | Giorgini, JD and JPL Solar System Dynamics Group, NASA/JPL Horizons On-Line Ephemeris System, https://ssd.jpl.nasa.gov/horizons/. Each trajectory file holds the date of retrieval. |
+| Radiation in the cruise to Mars, MSL | MSL RAD (Radiation Assessment Detector), NASA. Zeitlin and others, Science 340 (2013). Hassler and others, Science 343 (2014). |
+| Radiation in the cruise to Mars, ExoMars | Liulin-MO data: J. Semkova (Space Research and Technology Institute, Bulgarian Academy of Sciences) and V. Benghin (Institute of Biomedical Problems, Russian Academy of Sciences), http://esa-pro.space.bas.bg/datasources/LIULIN_MO. Reference: Semkova and others, Icarus 303 (2018). ExoMars is a mission of ESA and Roscosmos. |
+| Orbit of the station | Orbit elements from CelesTrak (https://celestrak.org). |
+| Land shapes of the ground map | Made with Natural Earth. |
+
+Scripts get each file one time and save it in `web/src/trip/data/`, so the app needs no network: `fetch-trajectories`, `fetch-iss-track`, `fetch-eda-radiation`, and `fetch-liulin` (see "Commands").
+
+### Communication delay
+
+One-way light time = distance between the Earth and the spacecraft ÷ the speed of light (299,792.458 km each second). The distance comes from the real positions of JPL Horizons. When MSL arrived at Mars, the light time was 13.8 minutes. The return of the crewed reference mission is the cruise in reverse. This is a model, and the page marks it as MODELLED: a real return waits for the right launch window.
+
+### Radiation forecast
+
+- The dose of a phase is a measured rate from a paper. The total is the sum over the days. The app has no model of the radiation.
+- A solar-cycle choice exists for the crewed reference mission. "Near solar maximum" uses MSL RAD. "Declining phase" uses Liulin-MO.
+- The career limit is 600 mSv of effective dose (NASA-STD-3001 Volume 1 revision C, [V1 4030]). The chart shows it only for a series in mSv, and marks the mission day when the total passes it.
+- A storm (solar particle event) is a button of the simulator. It adds a dose that you choose at the mission day of the cursor.
+
+### Cabin air: the CO2 and O2 forecast
+
+The model is the same kind as the cabin model of the CO2 page (one volume of air that is fully mixed), in steps of 1 minute, with a day of the crew.
+
+| Part | Value | Source or assumption |
+|---|---|---|
+| Rates of one person | Sleep: 3.60 O2 and 4.55 CO2. Nominal: 5.68 and 7.2. Exercise: 39.40 and 49.85. In kg for each minute × 10⁻⁴. | NASA Human Integration Design Handbook, by way of OCHMO-TB-004. |
+| Second set of rates | 1.08 kg of CO2 and 0.89 kg of O2 each day with 90 minutes of exercise. | NASA NTRS 20190027563. You can select it on the simulator page. |
+| Day of the crew | 8 hours of sleep and 2 sessions of 30 minutes of exercise. With the handbook rates, one person then makes 1.17 kg of CO2 and uses 0.92 kg of O2 each day. | The schedule is our default. You can change it. |
+| Exercise | The crew members exercise one after the other. | **Assumption:** a spacecraft has one exercise device. |
+| Scrubber | The CDRA equation of the CO2 page: 1.723 × ppCO2 − 0.38 kg each day for one unit. One bed removes half. | El Sherif and Knox, 2005. |
+| Scrubber size | One unit for each 2 persons. | **Assumption**, for each cabin other than the station. |
+| Station | One CDRA and other removal of 0.66 units. So the station removes 2.86 kg of CO2 each day for each mmHg. | Set from the RR-9 record with 6 persons. |
+| Oxygen generator | On or off, with a rate up to 9.25 kg each day. By default it makes as much as the crew uses. | ICES-2023-311. |
+| Sabatier reactor | It changes only the number "O2 loop closure". It converts about 50% of the CO2. | ESA ACLS. |
+| Cabin volume | Station 916 m³, Orion 9.34 m³, Mars transit habitat 100 m³, lunar surface habitat 127 m³, Gateway 125 m³. | Each preset names its source. |
+| O2 range | 145 to 155 mmHg. This is the pressure of the O2 that a person breathes in, not of the cabin air. | NASA-STD-3001 Volume 2 [V2 6003]. |
+
+A failure starts at the mission day where the presenter sets it. Before that day, the cabin has its usual daily pattern.
+
+**Check against the real record:** with the real crew counts of the station (6, 3, 6 persons), the model has an RMS error of 0.38 mmHg and a mean error of −0.06 mmHg against the RR-9 record. With 3 persons the model gives 1.45 mmHg and the record has 1.65 mmHg. The trip page shows this check for the station preset.
+
+### Effects on the body
+
+The card joins three hazards on one body figure:
+
+- **CO2:** the symptom bands of the CO2 page.
+- **O2:** the limits of NASA-STD-3001 Volume 2 for a low and a high O2 pressure.
+- **Radiation:** the NASA dose limits for each organ (lens of the eye, skin, blood-forming organs, heart, central nervous system) and the career limit (NASA-STD-3001 Volume 1).
+
+For each effect the card shows what the source reports, the comparison now, and a list "What you can do" with the source of each step. A step with no source is marked "our idea".
+
+The radiation part is a rough indicator. The app has a dose that one instrument measured at one place (mSv or mGy). The organ limits use the dose in one organ, weighted by its biological effect (mGy-Eq), and the career limit uses the effective dose. These are different quantities. Each such effect carries this warning, and it gets a weaker color.
+
+### Flags
+
+These points are true for the trip page. Each one is also on the page, on the preset or the chart where it applies.
+
+1. The cruise radiation almost does not change with the distance from the Sun between 1 and 1.5 AU. The dose line is flat on purpose.
+2. MSL flew near the solar maximum, when the galactic cosmic rays are lower. ExoMars TGO flew in the declining phase, when they are higher. The page always shows which setting is active.
+3. The shielding differs. MSL RAD was inside the spacecraft. Liulin-MO sits on the outside of the orbiter.
+4. mGy (and µGy) is absorbed dose. mSv is dose equivalent. A chart never has both, and the app converts nothing. Where a source gives both for one measurement, the page can show the mission in either unit.
+5. A solar particle event is a what-if scenario. Nobody can forecast its date.
+6. The CO2 and O2 forecast is a well-mixed model. The local exposure near the face can be higher in microgravity.
+7. The metabolic numbers differ by source: 0.82, 0.85, or 0.89 kg of O2, and 1.04 or 1.08 kg of CO2 each day. The page names the set that the model uses.
+8. The EDA dates the RR-9 CO2 telemetry in 2018, but the mission flew in 2017. The app moves it by −1 year and keeps only the window from the transfer to the undock.
+9. Artemis I flew no crew, and Orion has heavy shielding. The abstract of the paper says that its cruise dose rate was about 60% lower than on earlier missions. The numbers in the body of the paper give 22% to 39%. Do not compare it with MSL RAD without the shielding and the solar cycle.
+10. The rate on the lunar surface comes from the lander Chang'E 4 of the Chinese space agency CNSA. The instrument (LND) is German: Kiel University, with DLR.
+11. Gateway has no flown data. Each Gateway number is a proxy. NASA paused the program on 24 March 2026.
+
+More points that the research found:
+
+- The RAD team later gave a lower cruise rate for MSL: 1.58 ± 0.22 mSv (Zeitlin 2019, quoted in Guo 2021). The preset keeps 1.84 from the paper of 2013 and names the newer value.
+- In mGy, the two cruise instruments are not the same kind of value: RAD gives the dose in water and Liulin-MO gives the dose in silicon. Compare the two solar settings in mSv.
+- The 0.227 mGy of the lunar orbit is quoted from a later paper that cites the original, because the original is behind a paywall.
+- The South Atlantic Anomaly on the map is an ellipse from limits for 500 km of altitude (1996). At the altitude of the station the region is smaller, so the map shows too many and too long passes.
+- A custom flight of 259 days or less is an exact Kepler path. A longer flight uses the 259-day path with a slower clock, which is not physical.
+
+## How to compare the two ideas
+
+Open `/` and `/trip` next to each other, and use `/simulator` with its two tabs. Give each idea a mark from 1 to 5 for each point.
+
+| Point | Questions | CO2 exposure | Trip forecast |
+|---|---|---|---|
+| Demo clarity | Can a person who sees it for 30 seconds say what it shows? Does one action on the simulator give one clear change? | | |
+| Real-data share | How much of the screen is measured data, and how much is a model or a proxy? Count the badges. | | |
+| Wow factor | Which moment makes the audience look up? For example the body that changes color, or the light time that grows to 14 minutes. | | |
+| Build risk | What can fail in the live demo? What is still an assumption that a judge can question? | | |
+
+What we know now, to start the talk:
+
+- The CO2 page is one clear story with a real record at 5-minute steps. Its weak point: the cabin model follows a crew change two times faster than the real record.
+- The trip page has more to show and more real sources (trajectories, three radiation instruments). Its weak points: the body effects of radiation are a rough indicator, the lunar presets have little data, and the page is long.
+
 ## Parts
 
 | Part | Tools | Folder |
@@ -144,19 +294,31 @@ What this tells:
 | File | Content |
 |---|---|
 | `shared/co2.ts` | The unit conversion, the rolling averages, the symptom bands, the headache odds, and the cabin model. |
-| `server/src/engine.ts` | The simulator: one clock and one CO2 value for all screens, with the values of the last 7 days. |
+| `shared/trip/types.ts` | The types of the trip: presets, trajectory files, geometry, radiation, life support, simulator settings. |
+| `shared/trip/presets/` | One file for each mission preset, with each rate and its source. |
+| `shared/trip/geometry.ts`, `groundtrack.ts`, `transfer.ts` | The places of the spacecraft and the light time, the ground track of the station, and the transfer orbit of the custom mission. |
+| `shared/trip/radiation.ts` | The dose of each day, the total dose, the storms, the career limit, and the comparison. |
+| `shared/trip/lifesupport.ts`, `calibration.ts` | The CO2 and O2 model with the day of the crew, and its check against the real record. |
+| `shared/trip/effects.ts` | The effects of CO2, O2, and radiation on the body, with the steps that reduce each risk. |
+| `server/src/engine.ts` | The simulator: the clock and the CO2 value of the CO2 page, and the settings of the trip page. |
 | `server/src/index.ts` | The API, the live connection to the pages, and the built web app. |
-| `server/scripts/fetch-eda.ts` | Gets the record from the EDA page. |
+| `server/scripts/fetch-eda.ts` | Gets the CO2 record from the EDA page. The other `fetch-*.ts` scripts get the trajectories, the orbit of the station, and the measured dose series. |
 | `server/scripts/validate-model.ts` | Compares the model with the record. |
-| `web/src/pages/Dashboard.tsx` | The dashboard. |
-| `web/src/pages/Simulator.tsx` | The simulator page. |
-| `web/src/components/BodyFigure.tsx`, `BodyFigure3D.tsx` | The 2D and the 3D body figure. |
+| `web/src/pages/Dashboard.tsx` | The CO2 page. |
+| `web/src/pages/Trip.tsx`, `web/src/trip/` | The trip page, its cards, its data files (`data/`), and the code that joins them (`useTrip.ts`). |
+| `web/src/pages/Simulator.tsx` | The simulator page with its two tabs. |
+| `web/src/components/co2/` | The cards of the CO2 page. The trip page uses the headache risk and the time to limit cards for its own CO2 forecast. |
+| `web/src/components/BodyFigure.tsx`, `BodyFigure3D.tsx` | The 2D and the 3D body figure. Both pages use them. |
 | `web/src/texts.ts` | The sources and the texts of the bands and the settings. |
-| `web/src/locales/pt-BR.ts` | The Portuguese texts. |
+| `web/src/locales/pt-BR.ts`, `web/src/locales/pt-BR/` | The Portuguese texts. |
 
-The server keeps the state in memory. A restart starts the simulator again from its first state: real data replay, 7 days into the record.
+The server keeps the state in memory. A restart starts the simulator again from its first state: real data replay, 7 days into the record, and the MSL mission at day 0.
 
-The files in `docs/` are background research from an earlier, wider version of the project. They describe features that this version does not have.
+The server sends each change to all open pages through one stream (`/api/stream`, server-sent events). `POST /api/control` takes the CO2 settings at the top level and the trip settings inside `trip`, for example `{ "trip": { "day": 120, "life": { "scrubber": "off" } } }`. `GET /api/state` shows the whole state.
+
+The files `docs/sources-*.md` hold the quotes and the addresses for the numbers of the trip page. The files `docs/health-indicator-map.md` and `docs/data-correlations.md` are background research from an earlier, wider version of the project. They describe features that this version does not have.
+
+Each page part of the trip has a small test page for development, for example `/trip-test-w2.html` for the map. The production build does not hold them.
 
 ## Run the app with Docker
 
@@ -191,6 +353,7 @@ Vite serves the React app on port 5173 and forwards `/api` to the server on port
 3. Open that address on the screen for the audience. This is the dashboard.
 4. Open the same address with `/simulator` at the end on the phone.
 5. Move the CO2 slider. The dashboard follows at once.
+6. For the trip page, open the address with `/trip` at the end on the screen for the audience, and select the tab "Trip" on the phone.
 
 ## Tests
 
@@ -200,7 +363,12 @@ Vite serves the React app on port 5173 and forwards `/api` to the server on port
 - the rolling averages,
 - the symptom bands and the headache odds,
 - the cabin model and the time to a limit,
-- the simulator engine and the RR-9 record file.
+- the simulator engine and the RR-9 record file,
+- the light time and the geometry of each mission,
+- the ground track of the station and the transfer orbit,
+- the dose of each day, the total dose, the storms, and the career limit,
+- the CO2 and O2 model: the steady state, the rise after a failure, the daily pattern, and the check against the record,
+- the effects on the body.
 
 ## Deploy
 
@@ -229,7 +397,11 @@ The script copies the files to `/root/apps/nexxo`, builds the Docker image there
 | `npm run lint` | Runs the linter on the React app. |
 | `npm run build` | Builds the React app into `web/dist`. |
 | `npm start` | Starts the server. It also serves `web/dist` if that folder exists. |
-| `npm run fetch-eda -w server` | Downloads the RR-9 record again. |
+| `npm run fetch-eda -w server` | Downloads the RR-9 CO2 record again. |
+| `npm run fetch-eda-radiation -w server` | Downloads the RR-9 radiation data again. |
+| `npm run fetch-trajectories -w server` | Gets the trajectories from JPL Horizons again. |
+| `npm run fetch-iss-track -w server` | Gets the orbit of the station from CelesTrak and computes the ground track again. |
+| `npm run fetch-liulin -w server` | Downloads the Liulin-MO cruise data again. |
 | `npm run validate-model -w server` | Compares the cabin model with the record. |
 
 ## Settings
