@@ -1,11 +1,18 @@
-// Turns the live data into the numbers that the pages show. All math is in shared/co2.ts.
+// Turns CO2 data into the numbers that the pages show. All math is in shared/co2.ts.
+//
+// The cards read a "Co2View". viewFrom() makes it from a "Co2Feed": the values of the last
+// 7 days and what a model says about the next hours. Each page builds its own feed:
+//   the CO2 page and the simulator page  viewOf(live), with the cabin model of shared/co2.ts
+//   the trip page                        viewFrom(feedOfForecast(forecast, pressure))
 import {
   BANDS,
   HEADACHE,
   LIMIT_1H_MMHG,
+  STEPS_PER_HOUR,
   STEP_MINUTES,
   WINDOWS,
   intensity,
+  mmHgToPpm,
   modelOf,
   ppmToMmHg,
   project,
@@ -18,6 +25,7 @@ import {
   type Band,
   type WindowId,
 } from '../../shared/co2.ts'
+import type { CabinForecast } from '../../shared/trip/types.ts'
 import type { CSSProperties } from 'react'
 import { heatMix, type Heat } from './components/heat.ts'
 import { fmt, lang, t } from './i18n.ts'
@@ -55,14 +63,30 @@ export type ChartPoint = {
 export const CHART_PAST_HOURS = 24
 export const CHART_NEXT_HOURS = 24
 
-export function viewOf(live: Live, localPpm?: number) {
-  const { params, crew, cdra } = live.state
-  const pressure = params.totalPressureMmHg
-  // The simulator page shows the value of its slider at once, before the server answers.
-  const ppm = localPpm === undefined ? live.ppm : [...live.ppm.slice(0, -1), localPpm]
+// What a page gives to viewFrom(): the CO2 values and the answers of its model.
+export type Co2Feed = {
+  // The total pressure of the cabin, in mmHg. It converts ppm to mmHg.
+  pressure: number
+  // The values of the last 7 days in ppm, one each 5 minutes. The last one is the value now.
+  // A shorter series is fine: an average then tells that it is not complete.
+  ppm: number[]
+  // The source of each value: SOURCE.record, SOURCE.model, or SOURCE.manual.
+  src: number[]
+  // The change of the CO2 now, in mmHg for each hour.
+  rate: number
+  // The value where the model stops, in mmHg. Infinity: the model has no such value.
+  balance: number
+  // The CO2 of the next 24 hours from the model in mmHg, one value each 5 minutes. The first one is the value now.
+  next: number[]
+  // The hours until the model reaches this value, from below or from above. 0: at it now. null: never.
+  hoursTo: (targetMmHg: number) => number | null
+}
+
+export function viewFrom(feed: Co2Feed) {
+  const { pressure, ppm, src, rate, balance } = feed
   const nowPpm = ppm[ppm.length - 1]
   const now = ppmToMmHg(nowPpm, pressure)
-  const nowSource = localPpm === undefined ? live.src[live.src.length - 1] : SOURCE.manual
+  const nowSource = src[src.length - 1]
 
   const windows: WindowView[] = WINDOWS.map((window) => {
     const average = rollingMean(ppm, window.steps)!
@@ -77,14 +101,13 @@ export function viewOf(live: Live, localPpm?: number) {
   })
   const week = windows[2]
 
-  const model = modelOf(params, crew, cdra)
-  const rate = rateAt(now, model)
   // The record has one decimal of ppm, so a value "at" a target can be a little below it.
   const NEAR = 0.005
   const countdowns: Countdown[] = thresholds().map((target) => {
-    if (now < target - NEAR) return { target, side: 'below', hours: timeTo(now, target, model) }
-    // At or above the target: the time until a falling value goes below it.
-    return { target, side: 'above', hours: rate < 0 && now > target ? timeTo(now, target, model) : null }
+    if (now < target - NEAR) return { target, side: 'below', hours: feed.hoursTo(target) }
+    // At or above the target: the time until the value goes below it. A value that is not above
+    // the target gets no time. The cabin model of shared/co2.ts gives a time only for a falling value.
+    return { target, side: 'above', hours: now > target ? feed.hoursTo(target) : null }
   })
 
   const heat = regionHeat(now)
@@ -104,14 +127,13 @@ export function viewOf(live: Live, localPpm?: number) {
   }
 
   // The chart: the last 24 hours, and the next 24 hours from the model.
-  const past = Math.min(ppm.length, (CHART_PAST_HOURS * 60) / STEP_MINUTES + 1)
+  const past = Math.min(ppm.length, CHART_PAST_HOURS * STEPS_PER_HOUR + 1)
   const chart: ChartPoint[] = []
-  const sourceAt = (index: number) => (index === ppm.length - 1 ? nowSource : live.src[index])
   for (let index = ppm.length - past; index < ppm.length; index++) {
-    const real = sourceAt(index) === SOURCE.record
-    const before = index > 0 && sourceAt(index - 1) === SOURCE.record
+    const real = src[index] === SOURCE.record
+    const before = index > 0 && src[index - 1] === SOURCE.record
     const value = ppmToMmHg(ppm[index], pressure)
-    const source = real ? 'record' : sourceAt(index) === SOURCE.model ? 'model' : 'manual'
+    const source = real ? 'record' : src[index] === SOURCE.model ? 'model' : 'manual'
     const point: ChartPoint = { hour: ((index - ppm.length + 1) * STEP_MINUTES) / 60, source }
     if (real) point.record = value
     else point.simulated = value
@@ -122,9 +144,8 @@ export function viewOf(live: Live, localPpm?: number) {
     }
     chart.push(point)
   }
-  const future = project(now, CHART_NEXT_HOURS, model)
   chart[chart.length - 1].projection = now
-  future.slice(1).forEach((value, index) => chart.push({ hour: ((index + 1) * STEP_MINUTES) / 60, projection: value, source: 'projection' }))
+  feed.next.slice(1, CHART_NEXT_HOURS * STEPS_PER_HOUR + 1).forEach((value, index) => chart.push({ hour: ((index + 1) * STEP_MINUTES) / 60, projection: value, source: 'projection' }))
 
   return {
     pressure,
@@ -132,13 +153,13 @@ export function viewOf(live: Live, localPpm?: number) {
     now,
     nowSource,
     // The change of the last hour in the data, in mmHg. null: the series is too short.
-    lastHour: ppm.length > 12 ? now - ppmToMmHg(ppm[ppm.length - 13], pressure) : null,
+    lastHour: ppm.length > STEPS_PER_HOUR ? now - ppmToMmHg(ppm[ppm.length - 1 - STEPS_PER_HOUR], pressure) : null,
     windows,
     overLimit: windows[0].mmHg > LIMIT_1H_MMHG,
     // The odds from the 7-day average. null below the range of the study.
     odds: week.mmHg >= HEADACHE.studyFloorMmHg ? relativeOdds(week.mmHg) : null,
-    model,
     rate,
+    balance,
     countdowns,
     toLimit: countdowns.find((item) => item.target === LIMIT_1H_MMHG)!,
     bands: BANDS.map((band) => ({ band, intensity: intensity(now, band) })),
@@ -147,8 +168,50 @@ export function viewOf(live: Live, localPpm?: number) {
     chart,
   }
 }
+// What the CO2 cards show. It does not tell which model made the numbers.
+export type Co2View = ReturnType<typeof viewFrom>
+
+// The view of the CO2 page and of the simulator page: the live data with the cabin model of shared/co2.ts.
+export function viewOf(live: Live, localPpm?: number) {
+  const { params, crew, cdra } = live.state
+  const pressure = params.totalPressureMmHg
+  // The simulator page shows the value of its slider at once, before the server answers.
+  const ppm = localPpm === undefined ? live.ppm : [...live.ppm.slice(0, -1), localPpm]
+  const src = localPpm === undefined ? live.src : [...live.src.slice(0, -1), SOURCE.manual]
+  const now = ppmToMmHg(ppm[ppm.length - 1], pressure)
+  const model = modelOf(params, crew, cdra)
+  const view = viewFrom({
+    pressure,
+    ppm,
+    src,
+    rate: rateAt(now, model),
+    balance: model.balance,
+    next: project(now, CHART_NEXT_HOURS, model),
+    hoursTo: (target) => timeTo(now, target, model),
+  })
+  // The simulator page still reads "model". A card reads "rate" and "balance".
+  return { ...view, model }
+}
+// A Co2View with the cabin model. Each card accepts it.
 export type View = ReturnType<typeof viewOf>
 export type BandView = { band: Band; intensity: number }
+
+// The feed of the trip page: the CO2 forecast of the life support model (shared/trip/lifesupport.ts).
+// Each value is a value of the model, so the cards mark it as simulated.
+export function feedOfForecast(forecast: CabinForecast, totalPressureMmHg: number): Co2Feed {
+  const next = forecast.nextCo2MmHg
+  return {
+    pressure: totalPressureMmHg,
+    ppm: forecast.pastCo2MmHg.map((mmHg) => mmHgToPpm(mmHg, totalPressureMmHg)),
+    src: forecast.pastCo2MmHg.map(() => SOURCE.model),
+    // The forecast has no rate, so this is the mean change of the next 5 minutes.
+    rate: next.length > 1 ? (next[1] - next[0]) * STEPS_PER_HOUR : 0,
+    // This model has a daily pattern, so it stops at no value. The mean of a full day takes that place.
+    balance: forecast.dailyMeanCo2MmHg ?? Infinity,
+    next,
+    hoursTo: forecast.hoursToCo2,
+  }
+}
 
 // A time span for a person: "25 min", "5 h 20 min", "2 d 4 h".
 export function formatDuration(hours: number): string {

@@ -1,0 +1,21 @@
+/* What the CO2 cards share: the head of a card, the note at its end, and the thin bar. */
+.xp-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px 16px; margin-bottom: 20px; }
+.xp-h2 { font-size: 1.375rem; line-height: 1.2; }
+.xp-legend { margin-top: 6px; font-size: 0.875rem; color: var(--text-muted); max-width: 44ch; }
+.xp-note { margin-top: 20px; font-size: 0.8125rem; line-height: 1.55; color: var(--text-muted); max-width: 86ch; }
+
+/* The thin bar: the part up to the reference, a mark at the reference, and a dot for the value. */
+.meter { position: relative; height: 18px; }
+.meter-track, .meter-ok { position: absolute; left: 0; top: 7px; height: 4px; border-radius: 2px; }
+.meter-track { right: 0; background: var(--border); }
+.meter-ok { background: var(--border-strong); }
+.meter-mark { position: absolute; top: 1px; width: 2px; height: 16px; margin-left: -1px; border-radius: 1px; background: var(--text-soft); }
+.meter-dot, .gauge-dot { position: absolute; top: 1px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; border: 3px solid var(--surface); background: var(--text); transition: left 0.5s var(--ease), background-color 0.3s ease; }
+.meter-normal { background: var(--good); }
+.meter-caution { background: var(--warning); }
+.meter-alert { background: var(--critical); }
+.meter-none { background: var(--text); }
+
+@media (max-width: 599px) {
+  .xp-card-head { margin-bottom: 16px; }
+}
