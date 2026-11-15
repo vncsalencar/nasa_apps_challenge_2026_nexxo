@@ -1,5 +1,5 @@
-// The helmet sensors on the server: one state for all screens, its own stream, and its own
-// control route. It is apart from the simulator engine of the other two pages.
+// The helmet sensors on the server: one state for all screens, a stream that sends each change,
+// and a control route for the simulator page and the helmet page.
 import type { Express, Response } from 'express'
 import { NOTICE_KINDS, RATES, ROUTINES, SENSOR_IDS, VALUE_LIMITS, calmHelmet, clearHelmet, endNotice, seeNotice, sendNotice, setSensor, startJet, startRoutine, stepHelmet, type HelmetState, type NoticeKind } from '../../shared/helmet.ts'
 

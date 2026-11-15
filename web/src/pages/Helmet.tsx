@@ -14,7 +14,7 @@ import { LangSwitch } from '../components/LangSwitch.tsx'
 import { fmt, t } from '../i18n.ts'
 import { NoticeOverlay } from '../helmet/NoticeOverlay.tsx'
 import { helmetAlert, useHelmet } from '../helmet/useHelmet.ts'
-import './dashboard.css'
+import './page.css'
 import './helmet.css'
 
 // The 3D view loads only when a person selects it, because it brings a large 3D library and the model.

@@ -12,5 +12,5 @@
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true
   },
-  "include": ["src", "scripts", "../shared"]
+  "include": ["src", "../shared"]
 }

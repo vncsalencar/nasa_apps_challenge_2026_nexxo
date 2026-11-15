@@ -5,7 +5,7 @@ COPY package.json package-lock.json ./
 COPY web/package.json web/
 COPY server/package.json server/
 RUN npm ci
-# The web app and the server both use the math in shared/.
+# The web app and the server both use the rules in shared/.
 COPY shared shared
 COPY web web
 RUN npm run build -w web
@@ -20,7 +20,6 @@ COPY server/package.json server/
 RUN npm ci --omit=dev -w server
 COPY shared shared
 COPY server/src server/src
-COPY server/seed server/seed
 COPY --from=build /app/web/dist web/dist
 
 ENV PORT=3001

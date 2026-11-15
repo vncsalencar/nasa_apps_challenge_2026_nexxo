@@ -1,6 +1,6 @@
 // Translation of the texts of the web app.
 //
-// The English text is the key: t('Body map'), t('in {time}', { time }).
+// The English text is the key: t('Helmet'), t('Target: {value} mmHg.', { value }).
 // A language file maps the English text to its translation. If a text has no translation,
 // the app shows the English text.
 //

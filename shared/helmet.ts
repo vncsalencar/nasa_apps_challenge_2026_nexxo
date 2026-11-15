@@ -1,5 +1,5 @@
 // The helmet page: CO2 sensors at some places inside a space suit helmet. Pure functions with
-// no imports, so the server, the web app, and the tests use the same code.
+// no imports, so the server and the web app use the same code.
 //
 // The sensors and their values are a simulation. No real suit data is behind them.
 
@@ -24,8 +24,8 @@ export const SENSORS: Sensor[] = [
 export const SENSOR_IDS = SENSORS.map((sensor) => sensor.id)
 
 // The colors of a sensor, by the CO2 partial pressure in mmHg.
-// Assumption: the page uses the values of the CO2 page for a cabin, because we have no checked
-// limit for the air inside a helmet. Yellow starts at 2.3 mmHg, where crews on the station
+// Assumption: the page uses values for a cabin, because we have no checked limit for the air
+// inside a helmet. Yellow starts at 2.3 mmHg, where crews on the station
 // first report symptoms (Law and Alexander, NTRS 20150019624). Red starts above 3.0 mmHg,
 // the NASA limit for the 1-hour average in a cabin (NASA-STD-3001 Volume 2 [V2 6004]).
 export const LEVELS = { caution: 2.3, alert: 3.0 }
