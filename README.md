@@ -269,7 +269,9 @@ More points that the research found:
 
 ## The helmet page
 
-The page `/helmet` is a small third page. It shows a drawing of a space suit helmet with 7 CO2 sensors: top, top left, top right, left, right, mouth, and neck ring. Each sensor is a light with its value in mmHg. A short alert above the drawing names the sensors where the CO2 rises or is high.
+The page `/helmet` is a small third page. It shows an astronaut in a space suit with 7 CO2 sensors around the helmet: top, top left, top right, left, right, mouth, and neck ring. Each sensor is a light with its value in mmHg. A switch selects a still picture (2D) or the 3D model, which you can turn with a drag. A click or a tap on a sensor shows its value and what to do.
+
+The astronaut is the NASA model "Extravehicular Mobility Unit" from NASA 3D Resources (https://github.com/nasa/NASA-3D-Resources). NASA says that these assets are free and without copyright. The model is in `web/public/models/emu.glb`, and the 2D picture `astronaut-front.webp` is a still of the same model. The files in `web/public/draco/` are the decoder of the 3D library for this model. A short alert above the drawing names the sensors where the CO2 rises or is high.
 
 | Light | CO2 partial pressure |
 |---|---|

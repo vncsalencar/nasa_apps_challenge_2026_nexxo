@@ -5,46 +5,35 @@
 .hm-banner-caution { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 60%, transparent); }
 .hm-banner-alert { color: var(--critical); border-color: var(--critical); }
 
-.hm-figure { width: min(100%, 520px, calc((100dvh - 330px) * 0.87)); min-width: min(100%, 280px); height: auto; overflow: visible; touch-action: pan-y; }
+/* The 2D view: a still picture of the NASA suit model, with one light for each sensor on top.
+   The picture tilts a little toward the pointer, and a soft light passes over it now and then. */
+.hm-stage { position: relative; width: min(100%, 640px, calc((100dvh - 300px) * 0.95)); aspect-ratio: 1 / 1; perspective: 900px; }
+.hm-tilt { position: absolute; inset: 0; transform: rotateY(calc(var(--look-x, 0) * 7deg)) rotateX(calc(var(--look-y, 0) * -5deg)); transition: transform 0.3s ease-out; transform-style: preserve-3d; animation: hm-float 7s ease-in-out infinite; }
+@keyframes hm-float { 50% { translate: 0 -5px; } }
+.hm-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; user-select: none; -webkit-mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); }
+.hm-sweep { position: absolute; left: 30%; top: 16%; width: 40%; height: 46%; border-radius: 50%; overflow: hidden; pointer-events: none; }
+.hm-sweep::after { content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.22), transparent); animation: hm-sweep 8s ease-in-out infinite; }
+@keyframes hm-sweep { 0%, 60% { translate: 0 0; } 90%, 100% { translate: 480% 0; } }
 
-/* Small movements. The head turns toward the pointer, the reflections move the other way, the
-   astronaut breathes and blinks, and a glint passes over the glass now and then. */
-.hm-helmet { transform: rotate(calc(var(--look-x, 0) * 1.6deg)); transform-origin: 200px 360px; transition: transform 0.25s ease-out; }
-.hm-head { transform: translate(calc(var(--look-x, 0) * 9px), calc(var(--look-y, 0) * 5px)); transition: transform 0.25s ease-out; }
-.hm-pupils { transform: translate(calc(var(--look-x, 0) * 2.4px), calc(var(--look-y, 0) * 1.8px)); transition: transform 0.2s ease-out; }
-.hm-reflect { transform: translate(calc(var(--look-x, 0) * -10px), calc(var(--look-y, 0) * -6px)); transition: transform 0.25s ease-out; }
-.hm-breath { animation: hm-breath 4.5s ease-in-out infinite; transform-origin: 200px 460px; }
-@keyframes hm-breath { 50% { transform: scale(1.012, 1.02); } }
-.hm-eyes { transform-box: fill-box; transform-origin: center; animation: hm-blink 5.2s infinite; }
-@keyframes hm-blink { 0%, 94%, 100% { transform: scaleY(1); } 96.5% { transform: scaleY(0.08); } }
-.hm-glint { animation: hm-glint 7s ease-in-out infinite; }
-@keyframes hm-glint { 0%, 55% { translate: 0 0; } 85%, 100% { translate: 620px 0; } }
-.hm-lamp { animation: hm-lamp 3.6s ease-in-out infinite; }
-@keyframes hm-lamp { 50% { opacity: 0.55; } }
-.hm-led { animation: hm-lamp 1.8s ease-in-out infinite; }
-
-/* A sensor: a light with a soft glow and its value. The color follows the level. */
-.hm-sensor { color: var(--good); cursor: pointer; outline: none; }
-.hm-sensor.hm-caution { color: var(--warning); }
-.hm-sensor.hm-alert { color: var(--critical); }
-.hm-light { fill: currentColor; stroke: #0b0d12; stroke-width: 3; transition: fill 0.4s ease, r 0.15s ease; }
-.hm-glow { fill: currentColor; opacity: 0.25; transition: fill 0.4s ease, opacity 0.4s ease; }
-.hm-caution .hm-glow { opacity: 0.38; }
-.hm-alert .hm-glow { opacity: 0.5; }
-.hm-sensor:hover .hm-light, .hm-sensor:focus-visible .hm-light { r: 18.5px; }
-.hm-sensor:focus-visible .hm-light, .hm-on .hm-light { stroke: var(--text); }
-/* A sensor with a value that rises now: its glow beats, and small clouds of CO2 leave it. */
-.hm-rising .hm-glow { transform-box: fill-box; transform-origin: center; animation: hm-beat 1s ease-in-out infinite; }
-@keyframes hm-beat { 50% { transform: scale(1.5); opacity: 0.12; } }
-.hm-puffs circle { fill: currentColor; opacity: 0; animation: hm-puff 1.8s ease-out infinite; }
-.hm-puffs circle:nth-child(2) { animation-delay: 0.6s; }
-.hm-puffs circle:nth-child(3) { animation-delay: 1.2s; }
-@keyframes hm-puff { 0% { opacity: 0; translate: 0 6px; } 25% { opacity: 0.8; } 100% { opacity: 0; translate: 0 -22px; } }
-.hm-value { fill: #14120f; font-family: var(--font-body); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; pointer-events: none; }
+/* A sensor: a light with a glow, a thin line, and a label with the value. */
+.hm-node { position: absolute; width: 0; height: 0; min-height: 0; padding: 0; border: 0; background: none; color: var(--good); cursor: pointer; transform: translateZ(20px); }
+.hm-node:active:not(:disabled) { transform: translateZ(20px); }
+.hm-node-dot { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 2px rgba(10, 12, 16, 0.75); transition: background-color 0.4s ease, scale 0.15s ease; }
+.hm-node-glow { position: absolute; left: -26px; top: -26px; width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle, currentColor 0%, transparent 68%); opacity: 0.55; transition: opacity 0.4s ease; }
+.hm-text-caution .hm-node-glow { opacity: 0.75; }
+.hm-text-alert .hm-node-glow { opacity: 0.95; }
+.hm-rising .hm-node-glow { animation: hm-beat 1s ease-in-out infinite; }
+@keyframes hm-beat { 50% { scale: 1.6; opacity: 0.25; } }
+.hm-node-line { position: absolute; left: 0; top: 0; width: 46px; height: 1px; background: currentColor; opacity: 0.7; transform-origin: 0 50%; rotate: atan2(var(--side-y), var(--side-x)); }
+.hm-node-label { position: absolute; left: calc(var(--side-x) * 46px); top: calc(var(--side-y) * 46px); translate: -50% -50%; min-width: 44px; height: 30px; padding: 0 9px; display: grid; place-items: center; border-radius: var(--radius-pill); border: 1px solid currentColor; background: color-mix(in srgb, var(--bg) 80%, transparent); font-size: 0.8125rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; transition: background-color 0.2s ease, color 0.2s ease; }
+.hm-node:hover .hm-node-dot, .hm-node:focus-visible .hm-node-dot { scale: 1.3; }
+.hm-node:focus-visible { outline: none; }
+.hm-node:focus-visible .hm-node-label, .hm-on .hm-node-label { background: var(--inverse-bg); color: var(--inverse-text); border-color: var(--inverse-bg); }
+/* A finger needs a larger target than the light. */
+.hm-node::before { content: ''; position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; }
 
 /* The switch between the two views, and the 3D view: a canvas with one button for each sensor on top. */
 .hm-view button { min-height: 36px; padding: 0 16px; }
-.hm-hide { display: none; }
 .hm-3d { position: relative; width: min(100%, 520px, calc((100dvh - 330px) * 0.87)); min-width: min(100%, 280px); aspect-ratio: 400 / 460; touch-action: pan-y; }
 .hm-3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
 .hm-3d canvas:active { cursor: grabbing; }
@@ -76,3 +65,16 @@
 .hc-sensor-value.hm-normal { color: var(--good); }
 .hc-sensor-value.hm-caution { color: var(--warning); }
 .hc-sensor-value.hm-alert { color: var(--critical); }
+
+/* The 3D view with the NASA model: lines from each light to its label, and small texts. */
+.hm-3d { width: min(100%, 640px, calc((100dvh - 300px) * 0.95)); aspect-ratio: 1 / 1; }
+.hm-3d canvas { opacity: 0; transition: opacity 0.5s ease; }
+.hm-3d-ready canvas { opacity: 1; }
+/* The view fades out at its edges, so the suit does not end at a hard line. */
+.hm-3d canvas { -webkit-mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); }
+.hm-3d-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.hm-3d-lines line { stroke: currentColor; stroke-width: 1.2; }
+.hm-3d-label, .hm-3d-lines { visibility: hidden; }
+.hm-3d-ready .hm-3d-label, .hm-3d-ready .hm-3d-lines { visibility: visible; }
+.hm-3d-wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-muted); }
+.hm-3d-credit { position: absolute; left: 0; right: 0; bottom: -4px; text-align: center; font-size: 0.6875rem; color: var(--text-muted); pointer-events: none; }

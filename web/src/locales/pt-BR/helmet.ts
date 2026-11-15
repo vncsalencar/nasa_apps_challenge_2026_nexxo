@@ -52,4 +52,6 @@ export const helmetTexts: Record<string, string> = {
   'Set the CO2 value of one sensor. The value stays until you change it or start a routine.':
     'Defina o valor de CO2 de um sensor. O valor fica até você mudar ou iniciar uma rotina.',
   'Open the helmet page': 'Abrir a página do capacete',
+  "Model: NASA 3D Resources, Extravehicular Mobility Unit": "Modelo: NASA 3D Resources, Extravehicular Mobility Unit",
+  "Loading the 3D model…": "Carregando o modelo 3D…",
 }
