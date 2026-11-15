@@ -1,42 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 import { BackSide, BufferAttribute, BufferGeometry, Group, Mesh, PerspectiveCamera, Raycaster, Scene, ShaderMaterial, Vector2, Vector3, WebGLRenderer } from 'three'
-import type { BodyPart, Status } from '../api.ts'
-import { STATUS_LABEL } from '../api.ts'
-import { t, tn } from '../i18n.ts'
-import { BODY_PART_LABEL } from '../symptoms.ts'
+import { t } from '../i18n.ts'
 import { BodyFigure } from './BodyFigure.tsx'
-import { bodyMesh, BORDERS, CENTER_Y, partAt, PARTS } from './body3d-shape.ts'
+import { bodyMesh, BORDERS, CENTER_Y, JAW, regionAt, REGIONS, SPOTS } from './body3d-shape.ts'
+import type { FigurePoint, FigureProps, Heat, HeatRegion } from './heat.ts'
+import { heatMix } from './heat.ts'
 import './body3d.css'
 
-// The body figure in 3D. It shows the same thing as the 2D figure: a part with a problem takes
-// the status color, a normal part is neutral, and a tap selects a part.
+// The body figure in 3D. It shows the same thing as the 2D figure: the color of each region shows its heat,
+// a region with no heat is neutral, and a tap selects a region.
 // The figure turns slowly by itself. A sideways drag turns it by hand.
 
-type Props = {
-  statuses: Record<BodyPart, Status>
-  symptomCounts: Partial<Record<BodyPart, number>>
-  selected: BodyPart | null
-  onSelect: (part: BodyPart) => void
-}
 type Rgb = [number, number, number]
 
 // The camera sees the same frame as the 2D drawing: 300 wide and 560 high.
 const FRAME_W = 300
 const FRAME_H = 560
 const FIELD_OF_VIEW = 20
-// The middle of the ring of each part, as [x, y] in the drawing, and the two sizes of the ring.
-const MARK: Record<BodyPart, [number, number]> = { head: [0, 56], chest: [0, 150], abdomen: [0, 236], arms: [74, 250], legs: [26, 400] }
-const RING: Record<BodyPart, [number, number]> = { head: [48, 62], chest: [40, 54], abdomen: [40, 54], arms: [40, 54], legs: [40, 54] }
-// The soft light behind a part with a problem: one or two spots, each as [x, y, half width, half height] in the drawing.
-const SPOTS: Record<BodyPart, [number, number, number, number][]> = {
-  head: [[0, 56, 54, 62]],
-  chest: [[0, 152, 86, 66]],
-  abdomen: [[0, 242, 74, 64]],
-  arms: [[72, 218, 38, 128], [-72, 218, 38, 128]],
-  legs: [[25, 405, 48, 152], [-25, 405, 48, 152]],
-}
-// How much a part shines by itself for each status.
-const GLOW: Record<Status, number> = { normal: 0, caution: 0.8, alert: 1 }
 // Radians for each second of the slow turn, and radians for each pixel of a drag.
 const TURN_SPEED = 0.2
 const DRAG_YAW = 0.011
@@ -44,8 +24,10 @@ const DRAG_PITCH = 0.004
 const REST_PITCH = 0.13
 // The figure starts to turn again this long after the last touch (milliseconds).
 const REST_TIME = 3500
-// A tap that misses the figure by a few pixels still selects a part. This helps a finger in a glove.
+// A tap that misses the figure by a few pixels still selects a region. This helps a finger in a glove.
 const NEAR: [number, number][] = [[0, 0], [9, 0], [-9, 0], [0, 9], [0, -9], [16, 0], [-16, 0], [0, 16], [0, -16], [12, 12], [-12, 12], [12, -12], [-12, -12]]
+// The order of the buttons for the keyboard: from the head down.
+const KEYS: HeatRegion[] = ['head', 'brain', 'eyes', 'face', 'airway', 'chest', 'abdomen', 'arms', 'legs']
 
 const VERTEX = /* glsl */ `
 attribute vec4 aPart;
@@ -56,7 +38,7 @@ varying vec3 vView;
 varying vec3 vPlace;
 varying vec4 vPart;
 void main() {
-  // uGrow moves the skin out. The outline of the selected part is the same body, made a little larger.
+  // uGrow moves the skin out. The outline of the selected region is the same body, made a little larger.
   vec4 view = modelViewMatrix * vec4(position + normal * uGrow, 1.0);
   vNormal = normalMatrix * normal;
   vModelNormal = normal;
@@ -69,14 +51,14 @@ void main() {
 // Each corner of the mesh knows its distance to the head, the torso, the arms and the legs.
 // The arms own the skin where they are the nearest. Three lines divide the rest of the body:
 // the collar, the waist and the hip. So each pixel has a distance to each of the five parts.
+// The four spot regions lie on top of the parts. Each one is a shape in the drawing.
+// A region has a number: 0 to 4 for the parts, 5 to 8 for the spot regions.
 const NEAREST = /* glsl */ `
 varying vec3 vNormal;
 varying vec3 vModelNormal;
 varying vec3 vView;
 varying vec3 vPlace;
 varying vec4 vPart;
-uniform vec3 uColor[5];
-uniform float uGlow[5];
 uniform int uSelected;
 // The three lines as numbers: each one is positive below its line.
 vec3 borders() {
@@ -84,6 +66,14 @@ vec3 borders() {
   float y = ${CENTER_Y.toFixed(1)} - vPlace.y;
   float z = vPlace.z;
   return vec3(${BORDERS.neck}, ${BORDERS.waist}, ${BORDERS.hip});
+}
+// The four spot regions as numbers: each one is positive inside its region.
+vec4 spots() {
+  float x = vPlace.x;
+  float y = ${CENTER_Y.toFixed(1)} - vPlace.y;
+  float z = vPlace.z;
+  float jaw = ${JAW};
+  return vec4(${SPOTS.join(', ')});
 }
 void distances(out float d[5]) {
   vec3 line = borders();
@@ -113,6 +103,12 @@ void nearest(out int part, out int other) {
 
 const BODY_FRAGMENT = /* glsl */ `
 ${NEAREST}
+// The heat of each region as two numbers: how much of the hot color shows, and where the hot color is
+// between the caution color (0) and the alert color (1). heatMix() of heat.ts gives the two numbers.
+uniform vec2 uHeat[9];
+uniform vec3 uNeutral;
+uniform vec3 uWarning;
+uniform vec3 uCritical;
 uniform float uBridge;
 uniform float uPixel;
 uniform float uUnit;
@@ -121,42 +117,73 @@ uniform vec3 uText;
 uniform vec3 uSeam;
 // How many pixels a value is away from zero. It gives lines of the same width at each size.
 float pixels(float value) { return value / max(fwidth(value), 0.00001) / uPixel; }
+// A line along a border. "far" is the distance to the border in pixels of the page.
+float stroke(float far, float from, float to) { return 1.0 - smoothstep(from, to, far); }
 void main() {
   int part;
   int other;
   nearest(part, other);
-  // "seam" is the distance to the nearest border in pixels of the page. It draws the thin line between two parts.
+  // "partSeam" is the distance to the nearest border between two parts, in pixels of the page.
   // uUnit is the size of one pixel of the canvas in the units of the body.
   // For the collar, the waist and the hip, the slope of the line keeps the border thin on skin that is almost level.
   vec3 line = borders();
   vec3 far = abs(line) / max(fwidth(line), vec3(0.6 * uUnit));
-  float seam = part == 0 ? far.x : part == 1 ? min(far.x, far.y) : part == 2 ? min(far.y, far.z) : far.z;
+  float partSeam = part == 0 ? far.x : part == 1 ? min(far.x, far.y) : part == 2 ? min(far.y, far.z) : far.z;
   float arm = abs(vPart.z - min(vPart.x, min(vPart.y, vPart.w))) / uUnit;
-  seam = (part == 3 ? arm : min(seam, arm)) / uPixel;
+  partSeam = (part == 3 ? arm : min(partSeam, arm)) / uPixel;
+  // "edge" is the distance to the edge of each spot region, in pixels of the page.
+  vec4 spot = spots();
+  vec4 edge = abs(spot) / max(fwidth(spot), vec4(0.6 * uUnit)) / uPixel;
+
+  // "region" gives the color of the pixel: a spot region with heat, or else the part.
+  // A spot region with no heat is not visible, so the part below shows.
+  // "seam" is the distance to the nearest border that shows. It draws the thin line between two regions.
+  // Inside a spot region with heat, only the edge of that region counts. So a border between two parts does not cross it.
+  int region = part;
+  float seam = partSeam;
+  for (int i = 0; i < 4; i++) {
+    if (uHeat[5 + i].x <= 0.0) continue;
+    if (spot[i] > 0.0) { region = 5 + i; seam = edge[i]; }
+    else if (region < 5) seam = min(seam, edge[i]);
+  }
+  vec2 heat = uHeat[region];
+  vec3 hot = mix(uWarning, uCritical, heat.y);
+  vec3 base = mix(uNeutral, hot, heat.x);
+  float glow = heat.x;
+  // "mark" is the distance to the border of the selected region. The selected region can be a spot region with no heat.
+  bool selected = false;
+  float mark = 10000.0;
+  if (uSelected >= 5) {
+    selected = spot[uSelected - 5] > 0.0;
+    mark = edge[uSelected - 5];
+  } else if (part == uSelected || other == uSelected) {
+    selected = part == uSelected;
+    mark = partSeam;
+  }
+  // The region under the pointer is a little brighter.
+  float lift = (uHover >= 5 ? spot[uHover - 5] > 0.0 : region == uHover) ? 1.0 : 0.0;
   vec3 n = normalize(vNormal);
   vec3 v = normalize(-vView);
   float facing = abs(dot(n, v));
-  vec3 base = uColor[part];
-  float glow = uGlow[part];
-  bool selected = part == uSelected;
-  float lift = part == uHover ? 1.0 : 0.0;
 
   if (uBridge > 0.5) {
-    // Bridge look: a drawing of thin lines. Rings at equal heights, the outer edge, and the borders of the parts.
+    // Bridge look: a drawing of thin lines. Rings at equal heights, the outer edge, and the borders of the regions.
     float level = vPlace.y / 9.0;
     float ring = 1.0 - smoothstep(0.35, 1.0, abs(fract(level) - 0.5) / max(fwidth(level), 0.00001) / uPixel);
     ring *= 1.0 - smoothstep(0.7, 0.93, abs(normalize(vModelNormal).y));
-    float edge = 1.0 - smoothstep(0.9, 1.7, pixels(facing));
-    float border = 1.0 - smoothstep(0.3, 0.8, seam);
-    float strength = glow > 0.0 ? 0.95 : 0.42;
+    float outer = 1.0 - smoothstep(0.9, 1.7, pixels(facing));
+    // The lines of a region are brighter when the region has more heat.
+    float strength = mix(0.42, 0.95, glow);
     if (selected) strength = 1.0;
     strength = min(1.0, strength + lift * 0.25);
-    float alpha = max(ring * strength, edge * max(strength, 0.7));
-    // A part with a problem also gets a weak fill, so it reads from a distance.
-    alpha = max(alpha, glow * 0.14);
+    float alpha = max(ring * strength, outer * max(strength, 0.7));
     vec3 color = selected && glow == 0.0 ? uText : base;
-    // The border between two parts is a light line, the same on both sides. It is brighter around the selected part.
-    gl_FragColor = mix(vec4(color * alpha, alpha), vec4(uText, 1.0) * (selected || other == uSelected ? 1.0 : 0.6), border);
+    // A region with heat also gets a fill of the hot color below its lines, so it reads from a distance.
+    float fill = glow * 0.34 * (1.0 - alpha);
+    vec4 pixel = vec4(color * alpha + hot * fill, alpha + fill);
+    // The border between two regions is a light line, the same on both sides. It is brighter around the selected region.
+    pixel = mix(pixel, vec4(uText, 1.0) * 0.6, stroke(seam, 0.3, 0.8));
+    gl_FragColor = mix(pixel, vec4(uText, 1.0), stroke(mark, 0.3, 0.8));
     return;
   }
 
@@ -166,13 +193,13 @@ void main() {
   float sky = n.y * 0.5 + 0.5;
   float rim = pow(1.0 - facing, 2.5) * smoothstep(-0.6, 0.5, dot(n, normalize(vec3(0.55, 0.45, -0.3))));
   vec3 color = base * (0.44 + 0.7 * key + 0.1 * sky);
-  // A part with a problem keeps more of its own color in the shadow.
+  // A region with heat keeps more of its own color in the shadow. More heat keeps more color.
   color = mix(color, base * (0.7 + 0.36 * key), glow * 0.8);
   color += mix(uText, base, 0.45) * rim * (0.5 + 0.1 * glow);
   color *= 1.0 + lift * 0.14;
-  // The border of the selected part is a light line, half on each side. Each other border is a thin dark line.
-  if (selected || other == uSelected) color = mix(color, uText, 1.0 - smoothstep(0.7, 1.2, seam));
-  else color = mix(color, uSeam, (1.0 - smoothstep(0.25, 0.85, seam)) * 0.9);
+  // Each border is a thin dark line. The border of the selected region is a light line, half on each side.
+  color = mix(color, uSeam, stroke(seam, 0.25, 0.85) * 0.9);
+  color = mix(color, uText, stroke(mark, 0.7, 1.2));
   gl_FragColor = vec4(color, 1.0);
 }`
 
@@ -183,7 +210,10 @@ void main() {
   int part;
   int other;
   nearest(part, other);
-  if (part != uSelected) discard;
+  vec4 spot = spots();
+  // The selected region is a part, or a spot region on top of the parts.
+  bool selected = uSelected >= 5 ? spot[uSelected - 5] > 0.0 : part == uSelected;
+  if (!selected) discard;
   gl_FragColor = vec4(uText, 1.0);
 }`
 
@@ -216,27 +246,25 @@ function hasWebgl() {
 }
 
 type Engine = {
-  canvas: HTMLCanvasElement
-  show: (statuses: Record<BodyPart, Status>, selected: BodyPart | null) => void
-  focus: (part: BodyPart | null) => void
+  show: (heat: Heat, selected: HeatRegion | null) => void
+  focus: (region: HeatRegion | null) => void
   dispose: () => void
+}
+type Calls = {
+  onSelect: (region: HeatRegion) => void
+  onHover: (region: HeatRegion | null, point?: FigurePoint) => void
+  onLost: () => void
 }
 
 // Makes the 3D scene inside `wrap`. It throws an error if the browser has no WebGL.
-function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onLost: () => void): Engine {
+function createEngine(wrap: HTMLElement, { onSelect, onHover, onLost }: Calls): Engine {
   const canvas = document.createElement('canvas')
   canvas.className = 'body3d-canvas'
-  canvas.setAttribute('role', 'img')
+  // The buttons for the keyboard tell a screen reader about the regions. The canvas is only the picture.
+  canvas.setAttribute('aria-hidden', 'true')
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'low-power' })
   renderer.setClearColor(0x000000, 0)
-  const rings = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  rings.setAttribute('class', 'body3d-rings')
-  rings.setAttribute('aria-hidden', 'true')
-  // The soft lights sit behind the canvas, so the body covers their middle.
-  const lights = document.createElement('div')
-  lights.className = 'body3d-lights'
-  lights.setAttribute('aria-hidden', 'true')
-  wrap.prepend(lights, canvas, rings)
+  wrap.prepend(canvas)
 
   const shape = bodyMesh()
   const geometry = new BufferGeometry()
@@ -245,17 +273,24 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
   geometry.setAttribute('aPart', new BufferAttribute(shape.part, 4))
   geometry.setIndex(new BufferAttribute(shape.index, 1))
 
-  // The two materials read the same colors.
-  const shared = {
-    uColor: { value: PARTS.map(() => new Vector3()) },
-    uGlow: { value: PARTS.map(() => 0) },
-    uSelected: { value: -1 },
-    uText: { value: new Vector3() },
-  }
+  // The two materials read the same selected region and the same color of the text.
+  const shared = { uSelected: { value: -1 }, uText: { value: new Vector3() } }
   const bodyMaterial = new ShaderMaterial({
     vertexShader: VERTEX,
     fragmentShader: BODY_FRAGMENT,
-    uniforms: { ...shared, uGrow: { value: 0 }, uBridge: { value: 0 }, uPixel: { value: 1 }, uUnit: { value: 1 }, uHover: { value: -1 }, uSeam: { value: new Vector3() } },
+    uniforms: {
+      ...shared,
+      uHeat: { value: REGIONS.map(() => new Vector2()) },
+      uNeutral: { value: new Vector3() },
+      uWarning: { value: new Vector3() },
+      uCritical: { value: new Vector3() },
+      uGrow: { value: 0 },
+      uBridge: { value: 0 },
+      uPixel: { value: 1 },
+      uUnit: { value: 1 },
+      uHover: { value: -1 },
+      uSeam: { value: new Vector3() },
+    },
   })
   const outlineMaterial = new ShaderMaterial({ vertexShader: VERTEX, fragmentShader: OUTLINE_FRAGMENT, side: BackSide, uniforms: { ...shared, uGrow: { value: 2 } } })
   const body = new Mesh(geometry, bodyMaterial)
@@ -267,10 +302,10 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
   const scene = new Scene().add(tilt)
   const camera = new PerspectiveCamera(FIELD_OF_VIEW, 1, 500, 4000)
 
-  let statuses: Record<BodyPart, Status> | null = null
-  let selected: BodyPart | null = null
-  let hover: BodyPart | null = null
-  let focused: BodyPart | null = null
+  let heat: Heat | null = null
+  let selected: HeatRegion | null = null
+  let hover: HeatRegion | null = null
+  let focused: HeatRegion | null = null
   let yaw = 0
   let pitch = REST_PITCH
   let speed = 0
@@ -285,81 +320,37 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
   let onScreen = true
   let disposed = false
   let drag: { id: number; x: number; y: number; startX: number; startY: number; time: number; moved: boolean } | null = null
-  let mouse: { x: number; y: number } | null = null
+  let mouse: FigurePoint | null = null
   let over = false
   const still = matchMedia('(prefers-reduced-motion: reduce)')
-  const circles = new Map<BodyPart, SVGCircleElement[]>()
-  const spots = new Map<BodyPart, HTMLElement[]>()
   const ray = new Raycaster()
   const pointer = new Vector2()
   const point = new Vector3()
 
-  // The number of a part for the shader. -1 means no part.
-  const number = (part: BodyPart | null) => (part ? PARTS.indexOf(part) : -1)
+  // The number of a region for the shader. -1 means no region.
+  const number = (region: HeatRegion | null) => (region ? REGIONS.indexOf(region) : -1)
 
-  // Sends the colors of the page and the state of each part to the shader.
+  // Sends the colors of the page and the heat of each region to the shader.
   function paint() {
     const bridge = document.documentElement.dataset.look === 'bridge'
     const text = pageColor('--text', '#f6f2ea')
-    const neutral = pageColor('--border-strong', '#4a453c')
-    const status: Record<Status, Rgb> = { normal: bridge ? text : neutral, caution: pageColor('--warning', '#f5b955'), alert: pageColor('--critical', '#ff7a66') }
-    PARTS.forEach((part, i) => {
-      const state = statuses?.[part] ?? 'normal'
-      shared.uColor.value[i].set(...status[state])
-      shared.uGlow.value[i] = GLOW[state]
+    const uniforms = bodyMaterial.uniforms
+    REGIONS.forEach((region, i) => {
+      const mix = heatMix(heat?.[region] ?? 0)
+      uniforms.uHeat.value[i].set(mix.amount, mix.toCritical)
     })
+    // The Bridge look is a drawing of lines, so the neutral color is the color of the text.
+    uniforms.uNeutral.value.set(...(bridge ? text : pageColor('--border-strong', '#4a453c')))
+    uniforms.uWarning.value.set(...pageColor('--warning', '#f5b955'))
+    uniforms.uCritical.value.set(...pageColor('--critical', '#ff7a66'))
+    uniforms.uSeam.value.set(...pageColor('--surface', '#171614'))
+    uniforms.uBridge.value = bridge ? 1 : 0
+    uniforms.uHover.value = number(focused ?? hover)
     shared.uText.value.set(...text)
     shared.uSelected.value = number(selected)
-    bodyMaterial.uniforms.uSeam.value.set(...pageColor('--surface', '#171614'))
-    bodyMaterial.uniforms.uBridge.value = bridge ? 1 : 0
-    bodyMaterial.uniforms.uHover.value = number(focused ?? hover)
     outline.visible = selected !== null
     dirty = true
     wake()
-  }
-
-  // Each part with a problem gets two rings and a soft light.
-  // The rings are SVG circles on top of the canvas, so they look the same as the rings of the 2D figure.
-  function makeRings() {
-    rings.replaceChildren()
-    lights.replaceChildren()
-    circles.clear()
-    spots.clear()
-    for (const part of PARTS) {
-      const state = statuses?.[part] ?? 'normal'
-      if (state === 'normal') continue
-      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-      group.setAttribute('class', `status-${state}`)
-      const pair = [0, 1].map(() => document.createElementNS('http://www.w3.org/2000/svg', 'circle'))
-      pair[1].setAttribute('opacity', '0.45')
-      group.append(...pair)
-      rings.append(group)
-      circles.set(part, pair)
-      const made = SPOTS[part].map(() => document.createElement('div'))
-      for (const spot of made) spot.className = `body3d-light status-${state}`
-      lights.append(...made)
-      spots.set(part, made)
-    }
-  }
-  // Moves the rings and the lights to the place of their part on the screen.
-  function placeRings() {
-    for (const [part, pair] of circles) {
-      point.set(MARK[part][0], CENTER_Y - MARK[part][1], 0).applyMatrix4(turn.matrixWorld).project(camera)
-      pair.forEach((circle, i) => {
-        circle.setAttribute('cx', ((point.x * 0.5 + 0.5) * width).toFixed(1))
-        circle.setAttribute('cy', ((0.5 - point.y * 0.5) * height).toFixed(1))
-        circle.setAttribute('r', (RING[part][i] * scale).toFixed(1))
-      })
-    }
-    for (const [part, made] of spots) {
-      made.forEach((spot, i) => {
-        const [x, y, halfWidth, halfHeight] = SPOTS[part][i]
-        point.set(x, CENTER_Y - y, 0).applyMatrix4(turn.matrixWorld).project(camera)
-        spot.style.width = `${(halfWidth * 2 * scale).toFixed(1)}px`
-        spot.style.height = `${(halfHeight * 2 * scale).toFixed(1)}px`
-        spot.style.transform = `translate(${((point.x * 0.5 + 0.5) * width - halfWidth * scale).toFixed(1)}px, ${((0.5 - point.y * 0.5) * height - halfHeight * scale).toFixed(1)}px)`
-      })
-    }
   }
 
   function resize() {
@@ -379,13 +370,12 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
     bodyMaterial.uniforms.uUnit.value = 1 / (scale * ratio)
     // The outline is about 2 pixels wide at each size.
     outlineMaterial.uniforms.uGrow.value = 2 / scale
-    rings.setAttribute('viewBox', `0 0 ${width} ${height}`)
     dirty = true
     wake()
   }
 
-  // The part of the body under a point of the screen, or null.
-  function pick(x: number, y: number, reach: number): BodyPart | null {
+  // The region of the body under a point of the screen, or null.
+  function pick(x: number, y: number, reach: number): HeatRegion | null {
     const box = canvas.getBoundingClientRect()
     tilt.updateMatrixWorld(true)
     for (let i = 0; i < reach; i++) {
@@ -394,13 +384,16 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
       const hit = ray.intersectObject(body, false)[0]
       if (!hit) continue
       turn.worldToLocal(point.copy(hit.point))
-      return partAt(point.x, point.y, point.z)
+      return regionAt(point.x, point.y, point.z)
     }
     return null
   }
-  function setHover(part: BodyPart | null) {
-    if (part === hover) return
-    hover = part
+  // Keeps the region under the pointer, and tells the page about it. `at` is the place of the pointer.
+  function setHover(region: HeatRegion | null, at?: FigurePoint) {
+    if (region) onHover(region, at)
+    else if (hover) onHover(null)
+    if (region === hover) return
+    hover = region
     bodyMaterial.uniforms.uHover.value = number(focused ?? hover)
     dirty = true
     wake()
@@ -412,7 +405,7 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
     lastTime = time
     const before = yaw + pitch * 7
     if (mouse && !drag) {
-      setHover(pick(mouse.x, mouse.y, 5))
+      setHover(pick(mouse.x, mouse.y, 5), mouse)
       canvas.style.cursor = hover ? 'pointer' : 'grab'
       mouse = null
     }
@@ -424,7 +417,7 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
       if (Math.abs(spin) < 0.01) spin = 0
       yaw += (speed + spin) * dt
       if (resting) pitch += (REST_PITCH - pitch) * Math.min(1, dt * 1.5)
-      // With the keyboard, the figure turns its front to the person, so the part with the focus is in view.
+      // With the keyboard, the figure turns its front to the person, so the region with the focus is in view.
       if (focused !== null) {
         const front = Math.round(yaw / (Math.PI * 2)) * Math.PI * 2
         yaw += (front - yaw) * Math.min(1, dt * 6)
@@ -437,7 +430,6 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
       turn.rotation.y = yaw
       tilt.rotation.x = pitch
       renderer.render(scene, camera)
-      placeRings()
     }
     // With no movement to wait for, the loop sleeps until the next change.
     const waiting = !still.matches && focused === null
@@ -467,7 +459,7 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
     if (!drag) {
       if (event.pointerType !== 'mouse') return
       mouse = { x: event.clientX, y: event.clientY }
-      // The figure does not turn while the mouse is over it. So the part under the mouse stays the same.
+      // The figure does not turn while the mouse is over it. So the region under the mouse stays the same.
       over = true
       wake()
       return
@@ -488,6 +480,8 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
         return
       }
       drag.moved = true
+      // The skin moves below the pointer during a drag. So no region is under the pointer until the drag ends.
+      setHover(null)
     }
     canvas.style.cursor = 'grabbing'
     yaw += dx * DRAG_YAW
@@ -506,8 +500,8 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
     if (event.type === 'pointercancel') return
     if (tap) {
       spin = 0
-      const part = pick(event.clientX, event.clientY, event.pointerType === 'mouse' ? 5 : NEAR.length)
-      if (part) onSelect(part)
+      const region = pick(event.clientX, event.clientY, event.pointerType === 'mouse' ? 5 : NEAR.length)
+      if (region) onSelect(region)
     }
     wake()
   }
@@ -549,23 +543,23 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
   paint()
 
   return {
-    canvas,
-    show(nextStatuses, nextSelected) {
-      const same = statuses !== null && PARTS.every((part) => statuses?.[part] === nextStatuses[part])
+    show(nextHeat, nextSelected) {
+      const same = heat !== null && REGIONS.every((region) => heat?.[region] === nextHeat[region])
       if (same && selected === nextSelected) return
-      statuses = { ...nextStatuses }
+      heat = { ...nextHeat }
       selected = nextSelected
-      if (!same) makeRings()
       paint()
     },
-    focus(part) {
-      focused = part
+    focus(region) {
+      focused = region
       lastTouch = performance.now()
       paint()
     },
     dispose() {
       disposed = true
       sleep()
+      // The figure goes away, so no region is under the pointer.
+      setHover(null)
       sizes.disconnect()
       sight.disconnect()
       looks.disconnect()
@@ -583,35 +577,32 @@ function createEngine(wrap: HTMLElement, onSelect: (part: BodyPart) => void, onL
       renderer.dispose()
       renderer.forceContextLoss()
       canvas.remove()
-      rings.remove()
-      lights.remove()
     },
   }
 }
 
-export default function BodyFigure3D({ statuses, symptomCounts, selected, onSelect }: Props) {
+export default function BodyFigure3D(props: FigureProps) {
+  const { heat, labels, selected, onSelect, onHover } = props
   const wrap = useRef<HTMLDivElement>(null)
   const engine = useRef<Engine | null>(null)
-  const select = useRef(onSelect)
+  // The engine lives longer than one render. It calls the newest functions of the page through this object.
+  const calls = useRef({ onSelect, onHover })
   // The 2D figure takes the place of the 3D figure when the browser has no WebGL.
   const [flat, setFlat] = useState(() => !hasWebgl())
-  const describe = (part: BodyPart) => {
-    const names = { part: t(BODY_PART_LABEL[part]), status: STATUS_LABEL[statuses[part]] }
-    const count = symptomCounts[part]
-    return count ? tn(count, '{part}: {status}, {count} open symptom', '{part}: {status}, {count} open symptoms', names) : t('{part}: {status}', names)
-  }
-  const problems = PARTS.filter((part) => statuses[part] !== 'normal').map(describe)
-  const label = `${t('Body of the crew member in 3D.')} ${problems.length ? `${problems.join('. ')}.` : t('All parts are normal.')}`
 
   useEffect(() => {
-    select.current = onSelect
-  }, [onSelect])
+    calls.current = { onSelect, onHover }
+  }, [onSelect, onHover])
   useEffect(() => {
     if (flat || !wrap.current) return
     let made: Engine | null = null
     let late = 0
     try {
-      made = createEngine(wrap.current, (part) => select.current(part), () => setFlat(true))
+      made = createEngine(wrap.current, {
+        onSelect: (region) => calls.current.onSelect(region),
+        onHover: (region, point) => calls.current.onHover?.(region, point),
+        onLost: () => setFlat(true),
+      })
     } catch {
       // The browser said yes to WebGL, but the scene did not start. Change to the 2D figure after this effect.
       late = requestAnimationFrame(() => setFlat(true))
@@ -624,19 +615,31 @@ export default function BodyFigure3D({ statuses, symptomCounts, selected, onSele
     }
   }, [flat])
   useEffect(() => {
-    engine.current?.show(statuses, selected)
-    engine.current?.canvas.setAttribute('aria-label', label)
-  }, [statuses, selected, label])
+    engine.current?.show(heat, selected)
+  }, [heat, selected, flat])
 
-  if (flat) return <BodyFigure statuses={statuses} symptomCounts={symptomCounts} selected={selected} onSelect={onSelect} />
+  if (flat) return <BodyFigure {...props} />
   return (
-    <div className="body3d" ref={wrap}>
-      {/* The canvas has no parts for the keyboard. These buttons do the same as a tap on a part. A button shows when it has the focus. */}
-      <ul className="body3d-keys" aria-label={t('Parts of the body')}>
-        {PARTS.map((part) => (
-          <li key={part}>
-            <button type="button" aria-pressed={selected === part} onClick={() => onSelect(part)} onFocus={() => engine.current?.focus(part)} onBlur={() => engine.current?.focus(null)}>
-              {describe(part)}
+    <div className="body3d" ref={wrap} role="group" aria-label={t('Body of the crew member')}>
+      {/* The canvas has no regions for the keyboard. These buttons do the same as a tap on a region. A button shows when it has the focus. */}
+      <ul className="body3d-keys">
+        {KEYS.map((region) => (
+          <li key={region}>
+            <button
+              type="button"
+              aria-pressed={selected === region}
+              aria-label={labels[region]}
+              onClick={() => onSelect(region)}
+              onFocus={() => {
+                engine.current?.focus(region)
+                onHover?.(region)
+              }}
+              onBlur={() => {
+                engine.current?.focus(null)
+                onHover?.(null)
+              }}
+            >
+              {labels[region]}
             </button>
           </li>
         ))}

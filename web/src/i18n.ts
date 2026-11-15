@@ -1,12 +1,12 @@
 // Translation of the texts of the web app.
 //
-// The English text is the key: t('Open the cabin'), t('{count} things to do now.', { count }).
+// The English text is the key: t('Body map'), t('in {time}', { time }).
 // A language file maps the English text to its translation. If a text has no translation,
 // the app shows the English text.
 //
 // The language is fixed when the page loads. setLang() saves the new language and loads the
-// page again, so each text and each answer of the server is in one language.
-import { ptBR } from './locales/pt-BR/index.ts'
+// page again, so each text of the page is in one language.
+import { ptBR } from './locales/pt-BR.ts'
 
 export type Lang = 'en' | 'pt-BR'
 export const LANGS: { id: Lang; label: string; short: string }[] = [
@@ -66,7 +66,7 @@ export function t(text: string, params?: Params): string {
   })
 }
 
-// A text with a count: tn(count, '1 question', '{count} questions').
+// A text with a count: tn(count, '{count} person', '{count} persons').
 export function tn(count: number, one: string, other: string, params?: Params): string {
   return t(count === 1 ? one : other, { count, ...params })
 }

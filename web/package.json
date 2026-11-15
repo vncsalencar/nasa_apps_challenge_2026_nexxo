@@ -4,20 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "voice-assets": "node scripts/copy-voice-assets.mjs",
-    "predev": "npm run voice-assets",
     "dev": "vite",
-    "prebuild": "npm run voice-assets",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fontsource/barlow": "^5.3.0",
     "@fontsource/inter": "^5.3.0",
     "@fontsource/sora": "^5.3.0",
-    "@huggingface/transformers": "^4.3.2",
-    "@ricky0123/vad-web": "^0.0.31",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5",

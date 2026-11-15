@@ -1,4 +1,4 @@
-import type { BodyPart } from '../api.ts'
+import type { BodyPart, HeatRegion, SpotRegion } from './heat.ts'
 
 // The shape of the 3D body figure. It uses the same drawing as the 2D figure:
 // x goes to the right from the middle, y goes down from 0 to 560, z comes to the viewer.
@@ -8,7 +8,8 @@ import type { BodyPart } from '../api.ts'
 // Each part of the body has its own field. A smooth minimum joins the fields, so the joints blend.
 // Then a mesher finds the surface where the field is zero and makes triangles from it.
 
-export const PARTS: BodyPart[] = ['head', 'chest', 'abdomen', 'arms', 'legs']
+// The regions in the order of their numbers in the shader: the five parts first, then the four spot regions.
+export const REGIONS: HeatRegion[] = ['head', 'chest', 'abdomen', 'arms', 'legs', 'brain', 'eyes', 'face', 'airway']
 // The middle of the drawing. The mesh has its zero point here.
 export const CENTER_Y = 280
 
@@ -202,6 +203,62 @@ const below = {
   waist: (_x: number, y: number) => y - 197,
   hip: (x: number, y: number) => y - (299 - 0.52 * Math.abs(x)),
 }
+
+// The four spot regions lie on top of the parts. These numbers give their places in the drawing.
+// The 2D figure draws its shapes from the same numbers.
+export const SPOT = {
+  // brain: the skull above the brow line. The line is level on the front. On the back of the head it goes down in a curve.
+  brow: 47,
+  browBack: 0.012,
+  // eyes: one ellipse on each side of the middle. `reach` makes the area for the pointer larger, because an eye is small.
+  eye: { x: 11.5, y: 55, rx: 7, ry: 4.2, reach: 2.5 },
+  // face: from below the eyes down to the jaw line, and from the front back to the ears at the depth `faceBack`.
+  faceTop: 61.5,
+  faceBack: 3,
+  // The jaw line is a curve. It is at `jaw.y` in the middle, and it goes up to the sides.
+  jaw: { y: 91.5, curve: 0.036 },
+  // airway: the front of the throat below the jaw line, then a narrow strip down the middle of the chest with a round end.
+  // The airway is `throat` wide on each side at the neck and `pipe` wide on the chest.
+  airway: { throat: 7, pipe: 4.5, narrowFrom: 102, narrowTo: 114, bottom: 146 },
+}
+// The height of the jaw line at a distance from the middle.
+export const jawLine = (x: number) => SPOT.jaw.y - SPOT.jaw.curve * x * x
+function smoothstep(from: number, to: number, value: number) {
+  const t = Math.min(1, Math.max(0, (value - from) / (to - from)))
+  return t * t * (3 - 2 * t)
+}
+// How wide the airway is on each side of the middle at a height.
+export function airwayWidth(y: number) {
+  const { throat, pipe, narrowFrom, narrowTo } = SPOT.airway
+  return throat + (pipe - throat) * smoothstep(narrowFrom, narrowTo, y)
+}
+// Each function gives a number that is positive inside its spot region. x, y and z are in the drawing.
+// `grow` makes the eyes larger by that many units.
+const inside: Record<SpotRegion, (x: number, y: number, z: number, grow: number) => number> = {
+  brain: (_x, y, z) => SPOT.brow + SPOT.browBack * Math.max(-(z + 2), 0) ** 2 - y,
+  eyes: (x, y, z, grow) => {
+    const { x: middle, y: height, rx, ry } = SPOT.eye
+    return Math.min((1 - Math.hypot((Math.abs(x) - middle) / (rx + grow), (y - height) / (ry + grow))) * ry, z - 5)
+  },
+  face: (x, y, z) => Math.min(y - SPOT.faceTop, jawLine(x) - y, z - SPOT.faceBack),
+  airway: (x, y, z) => {
+    const { pipe, bottom } = SPOT.airway
+    const side = y > bottom - pipe ? pipe - Math.hypot(x, y - (bottom - pipe)) : airwayWidth(y) - Math.abs(x)
+    return Math.min(side, y - jawLine(x), z)
+  },
+}
+// The same four functions as text for the shader of BodyFigure3D.tsx, in the order brain, eyes, face, airway.
+// The text of the face and of the airway uses the jaw line as "jaw".
+const glsl = (value: number) => value.toFixed(3)
+const END = SPOT.airway.bottom - SPOT.airway.pipe
+export const JAW = `${glsl(SPOT.jaw.y)} - ${glsl(SPOT.jaw.curve)} * x * x`
+export const SPOTS = [
+  `${glsl(SPOT.brow)} + ${glsl(SPOT.browBack)} * pow(max(-(z + 2.0), 0.0), 2.0) - y`,
+  `min((1.0 - length(vec2((abs(x) - ${glsl(SPOT.eye.x)}) / ${glsl(SPOT.eye.rx)}, (y - ${glsl(SPOT.eye.y)}) / ${glsl(SPOT.eye.ry)}))) * ${glsl(SPOT.eye.ry)}, z - 5.0)`,
+  `min(min(y - ${glsl(SPOT.faceTop)}, jaw - y), z - ${glsl(SPOT.faceBack)})`,
+  `min(min(y > ${glsl(END)} ? ${glsl(SPOT.airway.pipe)} - length(vec2(x, y - ${glsl(END)})) : mix(${glsl(SPOT.airway.throat)}, ${glsl(SPOT.airway.pipe)}, smoothstep(${glsl(SPOT.airway.narrowFrom)}, ${glsl(SPOT.airway.narrowTo)}, y)) - abs(x), y - jaw), z)`,
+]
+
 // The foot is a round cone from the heel to the toes, with a flat sole.
 const HEEL = [23, 529, -5, 9.5]
 const TOE = [25.5, 533.5, 32, 6]
@@ -253,7 +310,7 @@ function field(x: number, y: number, z: number, out: Float64Array, quick: boolea
 
 // The part of the body at a point on the skin. The point is in the space of the mesh (y up).
 const scratch = new Float64Array(4)
-export function partAt(x: number, y: number, z: number): BodyPart {
+function partAt(x: number, y: number, z: number): BodyPart {
   field(x, CENTER_Y - y, z, scratch, false)
   const top = CENTER_Y - y
   // The arms own the skin where they are nearer than the rest of the body. The lines divide the rest.
@@ -261,6 +318,15 @@ export function partAt(x: number, y: number, z: number): BodyPart {
   if (below.neck(x, top, z) < 0) return 'head'
   if (below.hip(x, top) > 0) return 'legs'
   return below.waist(x, top) < 0 ? 'chest' : 'abdomen'
+}
+// The region under the pointer at a point on the skin. The point is in the space of the mesh (y up).
+// A spot region takes the pointer before the part below it: first the eyes, then the face and the brain, then the airway.
+// A spot region takes the pointer also when it has no heat.
+const SPOT_ORDER: SpotRegion[] = ['eyes', 'face', 'brain', 'airway']
+export function regionAt(x: number, y: number, z: number): HeatRegion {
+  const top = CENTER_Y - y
+  for (const spot of SPOT_ORDER) if (inside[spot](x, top, z, SPOT.eye.reach) > 0) return spot
+  return partAt(x, y, z)
 }
 
 export type BodyMesh = {

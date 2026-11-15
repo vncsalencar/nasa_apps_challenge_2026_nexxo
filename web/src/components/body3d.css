@@ -2,13 +2,6 @@
 .body3d { position: relative; width: 100%; max-width: 420px; aspect-ratio: 42 / 62; margin: 0 auto; }
 /* pan-y: a finger that moves up or down scrolls the page. A finger that moves sideways turns the figure. */
 .body3d-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
-.body3d-rings { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.body3d-rings circle { fill: none; stroke: currentColor; stroke-width: 1.75; }
-/* The soft light behind a part with a problem. The Bridge look is a line drawing, so it has no soft light. */
-.body3d-lights { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.body3d-light { position: absolute; left: 0; top: 0; background: radial-gradient(closest-side, color-mix(in srgb, currentColor 46%, transparent), color-mix(in srgb, currentColor 20%, transparent) 55%, transparent); }
-.body3d-light.status-caution { opacity: 0.8; }
-:root[data-look='bridge'] .body3d-lights { display: none; }
 /* The buttons for the keyboard. A button is not visible until it has the focus. */
 .body3d-keys { list-style: none; margin: 0; padding: 0; }
 .body3d-keys button { position: absolute; left: 0; right: 0; bottom: 8px; width: max-content; max-width: 100%; margin: 0 auto; opacity: 0; pointer-events: none; background: var(--surface-2); }

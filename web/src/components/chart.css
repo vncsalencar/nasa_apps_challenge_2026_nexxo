@@ -1,0 +1,13 @@
+.chart { margin: 0; min-width: 0; }
+.chart-plot { height: 240px; }
+.chart-plot .recharts-surface { overflow: visible; }
+.chart-tip { background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 12px; padding: 8px 12px; font-size: 0.8125rem; line-height: 1.5; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5); }
+.chart-keys { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 12px; font-size: 0.75rem; color: var(--text-muted); }
+.chart-key { display: inline-flex; align-items: center; gap: 8px; }
+.chart-line { display: inline-block; width: 18px; height: 2px; border-radius: 1px; }
+.chart-line-dashed { background: linear-gradient(to right, var(--text-muted) 55%, transparent 55%) 0 0 / 6px 2px; }
+.chart-line-limit { background: linear-gradient(to right, var(--critical) 60%, transparent 60%) 0 0 / 9px 2px; }
+.chart-line-fine { background: linear-gradient(to right, var(--border-strong) 35%, transparent 35%) 0 0 / 6px 2px; }
+@media (min-width: 900px) {
+  .chart-plot { height: 280px; }
+}
