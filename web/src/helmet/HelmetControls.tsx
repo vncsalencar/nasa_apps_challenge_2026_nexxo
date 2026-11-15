@@ -107,7 +107,7 @@ export function HelmetControls({ helmet, run }: { helmet: HelmetState; run: Send
         {SENSORS.map((sensor) => (
           <SensorSlider key={sensor.id} id={sensor.id} label={sensor.label} helmet={helmet} run={run} />
         ))}
-        <a className="btn" href="/helmet">{t('Open the helmet page')}</a>
+        <a className="btn" href="/">{t('Open the helmet page')}</a>
       </section>
     </>
   )

@@ -2,14 +2,9 @@
 
 Nexxo is health monitoring software for astronauts. It is a project for the NASA Space Apps Challenge 2026, challenge "Create Health Monitoring Software for Astronauts on Space Missions".
 
-The app holds two ideas, so the team can test and compare them:
+The app now shows one page to an audience: the helmet page, at the first address (`/`). The presenter controls it from the simulator page (`/simulator`). See the section "The helmet page".
 
-| Idea | Page | In one sentence |
-|---|---|---|
-| CO2 exposure | `/` | The cabin CO2 of the station from a real record, what NASA documents report at that value, and the time that is left before a limit. |
-| Trip forecast | `/trip` | A whole mission on a timeline with a map, and forecasts of the communication delay, the radiation dose, the cabin air, and the effects on the body. |
-
-Both pages use the same server, the same simulator page (`/simulator`), the same math, and the same components. The section "How to compare the two ideas" has a short checklist.
+**Note:** the CO2 exposure page and the trip forecast page are not reachable now. No route and no tab opens them, and the simulator page has only the helmet controls. Their code is still in the repository (`web/src/pages/Dashboard.tsx`, `web/src/pages/Trip.tsx`, `web/src/pages/SimulatorAll.tsx`, and the server parts), and the sections below still describe them. The team will remove this code later.
 
 ## The CO2 page: "CO2 exposure"
 
@@ -269,7 +264,7 @@ More points that the research found:
 
 ## The helmet page
 
-The page `/helmet` is a small third page. It shows a space suit helmet with four CO2 sensors inside it:
+The first page (`/`) is the helmet page. It shows a space suit helmet with four CO2 sensors inside it:
 
 | Sensor | Place |
 |---|---|
@@ -293,7 +288,7 @@ A switch selects the view:
 
 The places of the sensors in the pictures come from the 3D model, so both views show a sensor at the same place of the helmet. On a wide screen, the information is at the right of the helmet: a short alert that names the sensors where the CO2 rises or is high, and one row for each sensor with its value, its place, and what to do. On a phone, the information is below the helmet.
 
-The tab "Helmet" of the simulator page controls it:
+The simulator page (`/simulator`) controls it:
 
 - A slider for each sensor sets its value at once.
 - A routine raises some sensors step by step: "Mouth and neck rise", "Forehead rises", "Back of the head rises", and "All sensors rise". The page then shows, for example, "CO2 levels are rising at these sensors: Mouth, Neck."

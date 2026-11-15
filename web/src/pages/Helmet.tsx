@@ -10,7 +10,6 @@
 // The sensors and their values are a simulation. No real suit data is behind them.
 import { Suspense, lazy, useState, type CSSProperties } from 'react'
 import { LEVELS, SENSORS, levelOf, risingSensors, type HelmetState, type Level } from '../../../shared/helmet.ts'
-import { PageTabs } from '../components/PageTabs.tsx'
 import { fmt, t } from '../i18n.ts'
 import { helmetAlert, useHelmet } from '../helmet/useHelmet.ts'
 import './dashboard.css'
@@ -111,7 +110,6 @@ export default function Helmet() {
         <div className="xp-brand">
           <span className="brand">Nexxo</span>
           <h1 className="hide">{t('Helmet')}</h1>
-          <PageTabs />
         </div>
         <div className="xp-live">
           <span className="mode mode-simulated">
