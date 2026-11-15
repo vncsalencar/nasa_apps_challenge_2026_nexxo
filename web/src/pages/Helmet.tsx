@@ -180,9 +180,6 @@ export default function Helmet() {
             <span className="hm-key hm-text-caution">▲ {t('{from} to {to} mmHg', { from: fmt(LEVELS.caution, 1), to: fmt(LEVELS.alert, 1) })}</span>
             <span className="hm-key hm-text-alert">■ {t('above {value} mmHg', { value: fmt(LEVELS.alert, 1) })}</span>
           </p>
-          <p className="hm-note">
-            {t('Each sensor has a light and a colored area on the helmet. The numbers are the CO2 partial pressure at each sensor, in mmHg. The sensors and their values are a simulation. The two color limits are those of a cabin (first reported symptoms at 2.3 mmHg, NASA limit of 3.0 mmHg for the 1-hour average), because we have no checked limit for the air inside a helmet.')}
-          </p>
         </section>
       </main>
     </div>

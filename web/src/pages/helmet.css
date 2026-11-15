@@ -68,7 +68,6 @@
 .hm-row-step { font-size: 0.875rem; color: var(--text-soft); }
 
 .hm-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 0.875rem; }
-.hm-note { max-width: 72ch; font-size: 0.8125rem; line-height: 1.55; color: var(--text-muted); }
 
 @media (min-width: 980px) {
   .hm-main { grid-template-columns: minmax(0, 7fr) minmax(320px, 5fr); gap: 32px; }

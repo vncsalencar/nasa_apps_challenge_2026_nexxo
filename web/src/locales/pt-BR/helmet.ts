@@ -24,7 +24,6 @@ export const helmetTexts: Record<string, string> = {
   "Raise the air flow of the suit now, lower the work load, and tell the crew. If the value stays high, end the work outside.": "Aumente o fluxo de ar do traje agora, reduza a carga de trabalho e avise a tripulação. Se o valor continuar alto, encerre o trabalho externo.",
   "below {value} mmHg": "abaixo de {value} mmHg",
   "above {value} mmHg": "acima de {value} mmHg",
-  "Each sensor has a light and a colored area on the helmet. The numbers are the CO2 partial pressure at each sensor, in mmHg. The sensors and their values are a simulation. The two color limits are those of a cabin (first reported symptoms at 2.3 mmHg, NASA limit of 3.0 mmHg for the 1-hour average), because we have no checked limit for the air inside a helmet.": "Cada sensor tem uma luz e uma área colorida no capacete. Os números são a pressão parcial de CO2 em cada sensor, em mmHg. Os sensores e seus valores são uma simulação. Os dois limites de cor são os de uma cabine (primeiros sintomas relatados em 2,3 mmHg, limite da NASA de 3,0 mmHg para a média de 1 hora), porque não temos um limite verificado para o ar dentro de um capacete.",
   "CO2 levels are rising at these sensors: {names}.": "O nível de CO2 está subindo nestes sensores: {names}.",
   "CO2 is high at these sensors: {names}.": "O CO2 está alto nestes sensores: {names}.",
   "CO2 is above the first level at these sensors: {names}.": "O CO2 está acima do primeiro nível nestes sensores: {names}.",
