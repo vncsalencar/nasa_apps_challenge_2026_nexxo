@@ -14,30 +14,12 @@ import { fmt, t } from '../i18n.ts'
 
 // The helmet in the model: its middle, its radius, and the side where the visor is (1: toward +z).
 const HELMET = { center: new THREE.Vector3(0.015, 1.85, 0.155), radius: 0.2, front: 1 }
-// The place of each sensor on the helmet, in helmet radii from its middle.
-// x is to the right of the viewer, y is up, z is out of the visor.
-const PLACE: Record<string, [number, number, number]> = {
-  top: [0, 0.96, 0.3],
-  'top-left': [-0.72, 0.6, 0.52],
-  'top-right': [0.72, 0.6, 0.52],
-  left: [-0.99, -0.02, 0.3],
-  right: [0.99, -0.02, 0.3],
-  mouth: [0, -0.5, 0.95],
-  neck: [0, -0.98, 0.42],
-}
 const COLOR: Record<Level, number> = { normal: 0x7ddba3, caution: 0xf5b955, alert: 0xff7a66 }
 const LEVEL_WORD: Record<Level, string> = { normal: t('normal'), caution: t('raised'), alert: t('high') }
-// How far the label of a sensor is from its light, in pixels, and to which side of the screen it goes.
+// How far the label of a sensor is from its light, in pixels.
 const LABEL_OUT = 46
-const LABEL_SIDE: Record<string, [number, number]> = {
-  top: [0, -1],
-  'top-left': [-0.8, -0.6],
-  'top-right': [0.8, -0.6],
-  left: [-1, 0],
-  right: [1, 0],
-  mouth: [0.86, 0.5],
-  neck: [-0.86, 0.5],
-}
+// The size of the colored area of a sensor on the helmet, as an angle from its middle, in radians.
+const AREA_ANGLE = 0.62
 
 type Props = {
   helmet: HelmetState
@@ -98,13 +80,19 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
     // A soft studio light from all sides, so the suit has depth and the visor has reflections.
     const pmrem = new THREE.PMREMGenerator(renderer)
     scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    scene.environmentIntensity = 0.22
+    scene.environmentIntensity = 0.16
     const key = new THREE.DirectionalLight(0xffffff, 2.6)
     key.position.set(-2.4, 2.2, 1.6)
     scene.add(key)
-    const rim = new THREE.DirectionalLight(0x8fb0ff, 1.1)
+    const rim = new THREE.DirectionalLight(0x8fb0ff, 1.6)
     rim.position.set(2.2, 0.8, -2)
     scene.add(rim)
+    // Light from above and a dark floor, so the folds of the suit show.
+    scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x0b0d12, 0.9))
+    // A weak warm light from below at the front, as from the lamps of a work place.
+    const fill = new THREE.DirectionalLight(0xffe2c4, 0.5)
+    fill.position.set(1.2, -1.4, 2)
+    scene.add(fill)
 
     const camera = new THREE.PerspectiveCamera(26, 1, 0.05, 30)
     camera.position.set(0, 0.02, 2.05)
@@ -113,19 +101,38 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
     // The model turns around the middle of the helmet.
     const pivot = new THREE.Group()
     scene.add(pivot)
-    const sensors: Record<string, { light: THREE.Mesh; glow: THREE.Sprite; material: THREE.MeshBasicMaterial; glowMaterial: THREE.SpriteMaterial }> = {}
+    const sensors: Record<string, { light: THREE.Mesh; glow: THREE.Sprite; material: THREE.MeshBasicMaterial; glowMaterial: THREE.SpriteMaterial; areaMaterial: THREE.MeshBasicMaterial }> = {}
     const glowMap = glowTexture()
+    // The colored area of a sensor: a round patch on the surface of the helmet that fades out at its edge.
+    const fade = document.createElement('canvas')
+    fade.width = 4
+    fade.height = 64
+    const fadeContext = fade.getContext('2d')!
+    const fadeGradient = fadeContext.createLinearGradient(0, 0, 0, 64)
+    fadeGradient.addColorStop(0, 'rgba(255,255,255,1)')
+    fadeGradient.addColorStop(0.55, 'rgba(255,255,255,0.7)')
+    fadeGradient.addColorStop(1, 'rgba(255,255,255,0)')
+    fadeContext.fillStyle = fadeGradient
+    fadeContext.fillRect(0, 0, 4, 64)
+    const fadeMap = new THREE.CanvasTexture(fade)
+    const areaShape = new THREE.SphereGeometry(HELMET.radius * 1.04, 32, 12, 0, Math.PI * 2, 0, AREA_ANGLE)
+    const upward = new THREE.Vector3(0, 1, 0)
     for (const sensor of SENSORS) {
-      const [x, y, z] = PLACE[sensor.id]
+      const [x, y, z] = sensor.dir
       const place = new THREE.Vector3(x, y, z * HELMET.front).multiplyScalar(HELMET.radius)
+      const areaMaterial = new THREE.MeshBasicMaterial({ color: COLOR.normal, map: fadeMap, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide })
+      const area = new THREE.Mesh(areaShape, areaMaterial)
+      area.quaternion.setFromUnitVectors(upward, place.clone().normalize())
+      area.renderOrder = 2
+      pivot.add(area)
       const material = new THREE.MeshBasicMaterial({ color: COLOR.normal })
-      const light = new THREE.Mesh(new THREE.SphereGeometry(HELMET.radius * 0.07, 16, 12), material)
+      const light = new THREE.Mesh(new THREE.SphereGeometry(HELMET.radius * 0.055, 20, 14), material)
       light.position.copy(place)
       const glowMaterial = new THREE.SpriteMaterial({ map: glowMap, color: COLOR.normal, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false })
       const glow = new THREE.Sprite(glowMaterial)
       glow.position.copy(place)
       pivot.add(light, glow)
-      sensors[sensor.id] = { light, glow, material, glowMaterial }
+      sensors[sensor.id] = { light, glow, material, glowMaterial, areaMaterial }
     }
 
     let gone = false
@@ -160,16 +167,31 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
           object.geometry = joined
           for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
             if (!(material instanceof THREE.MeshStandardMaterial)) continue
+            // A calm model with few details: no backpack arms, no patches, and no text.
+            if (/jetpack|lambert5SG|initialShadingGroup/.test(material.name)) {
+              material.visible = false
+              continue
+            }
             const { r, g, b } = material.color
-            // The gold parts are the visor: a mirror with a gold tint, as on the real helmet.
-            if (r > 0.45 && g > 0.3 && b < 0.3 && r - b > 0.25 && !material.map) {
+            const hadPicture = Boolean(material.map)
+            material.map = null
+            material.metalness = 0
+            if (!hadPicture && r > 0.45 && g > 0.3 && b < 0.3 && r - b > 0.25) {
+              // The gold parts are the visor: a mirror with a gold tint, as on the real helmet.
               material.color.setHex(0xd9a441)
               material.metalness = 1
-              material.roughness = 0.08
+              material.roughness = 0.06
               material.envMapIntensity = 2.2
+            } else if (!hadPicture && r > 0.8 && g < 0.35) {
+              // The red ring of the helmet and the red stripes stay, a little darker.
+              material.color.setHex(0xb8323a)
+              material.roughness = 0.6
             } else {
-              material.roughness = Math.min(material.roughness, 0.85)
+              // All the rest is the white cloth of the suit.
+              material.color.setHex(r + g + b < 1.5 && !hadPicture ? 0xb9b6ae : 0xecebe6)
+              material.roughness = 0.92
             }
+            material.needsUpdate = true
           }
         })
         pivot.add(turned)
@@ -197,13 +219,20 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
     let pitch = 0
     let dragging: { x: number; y: number; yaw: number; pitch: number } | null = null
     let lastDrag = -Infinity
+    // The speed of the turn at the end of a drag. The astronaut keeps this speed for a moment.
+    let spin = 0
+    let lastX = 0
     const down = (event: PointerEvent) => {
       dragging = { x: event.clientX, y: event.clientY, yaw, pitch }
+      lastX = event.clientX
+      spin = 0
       canvas.setPointerCapture(event.pointerId)
     }
     const move = (event: PointerEvent) => {
       if (!dragging) return
       yaw = Math.max(-1.5, Math.min(1.5, dragging.yaw + (event.clientX - dragging.x) * 0.01))
+      spin = (event.clientX - lastX) * 0.01
+      lastX = event.clientX
       pitch = Math.max(-0.4, Math.min(0.4, dragging.pitch + (event.clientY - dragging.y) * 0.006))
       lastDrag = performance.now()
     }
@@ -217,28 +246,74 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
     canvas.addEventListener('pointercancel', up)
 
     const point = new THREE.Vector3()
+    const middle = new THREE.Vector3()
     let frame = 0
+    // For development only: window.__helmetShot(size) gives the still picture of the 2D view
+    // (the astronaut from the front, with no sensor lights) and the place of each sensor on it.
+    if (import.meta.env.DEV) {
+      // window.__helmetShot(size) gives the two still pictures of the 2D view (from the front and
+      // from the back, with no sensor lights) and the place of each sensor in each picture.
+      ;(window as unknown as { __helmetShot: (size: number) => unknown }).__helmetShot = (size) => {
+        cancelAnimationFrame(frame)
+        pivot.position.y = 0
+        renderer.setPixelRatio(1)
+        renderer.setSize(size, size, false)
+        camera.aspect = 1
+        camera.updateProjectionMatrix()
+        for (const item of Object.values(sensors)) item.light.visible = item.glow.visible = false
+        for (const child of pivot.children) if (child instanceof THREE.Mesh && child.geometry === areaShape) child.visible = false
+        const shot = (turn: number) => {
+          pivot.rotation.set(0, turn, 0)
+          pivot.updateMatrixWorld(true)
+          renderer.render(scene, camera)
+          const url = canvas.toDataURL('image/webp', 0.92)
+          const places: Record<string, [number, number] | null> = {}
+          for (const sensor of SENSORS) {
+            sensors[sensor.id].light.getWorldPosition(point)
+            // A sensor on the far side of the helmet is not in this picture.
+            const hidden = point.z < -HELMET.radius * 0.2
+            point.project(camera)
+            places[sensor.id] = hidden ? null : [Number((((point.x + 1) / 2) * 100).toFixed(2)), Number((((1 - point.y) / 2) * 100).toFixed(2))]
+          }
+          middle.set(0, 0, 0).project(camera)
+          return { url, places, middle: [Number((((middle.x + 1) / 2) * 100).toFixed(2)), Number((((1 - middle.y) / 2) * 100).toFixed(2))] }
+        }
+        return { front: shot(0), back: shot(Math.PI) }
+      }
+    }
     const draw = (now: number) => {
       frame = requestAnimationFrame(draw)
       const seconds = now / 1000
+      // After a drag, the turn slows down softly.
+      if (!dragging && Math.abs(spin) > 0.0002) {
+        yaw = Math.max(-1.5, Math.min(1.5, yaw + spin))
+        spin *= 0.92
+        lastDrag = now
+      }
       // Go back to the slow turn 3 seconds after the last drag.
       if (!dragging && now - lastDrag > 3000) {
-        yaw += (Math.sin(seconds * 0.4) * 0.42 - yaw) * 0.03
-        pitch += (Math.sin(seconds * 0.27) * 0.05 - pitch) * 0.03
+        yaw += (Math.sin(seconds * 0.32) * 0.38 - yaw) * 0.02
+        pitch += (Math.sin(seconds * 0.21) * 0.04 - pitch) * 0.02
       }
       pivot.rotation.set(pitch, yaw, 0)
       // A slow float, as in free fall.
-      pivot.position.y = Math.sin(seconds * 0.9) * 0.006
+      pivot.position.y = Math.sin(seconds * 0.7) * 0.004
 
       const { helmet: state, rising: rise, selected: on } = live.current
       const width = box.clientWidth
       const height = box.clientHeight
+      middle.set(0, pivot.position.y, 0).project(camera)
+      const middleX = ((middle.x + 1) / 2) * width
+      const middleY = ((1 - middle.y) / 2) * height
       for (const sensor of SENSORS) {
         const item = sensors[sensor.id]
         const level = levelOf(state.sensors[sensor.id].value)
         item.material.color.setHex(COLOR[level])
         item.glowMaterial.color.setHex(COLOR[level])
         const beat = rise.includes(sensor.id) ? 1 + 0.5 * (0.5 + 0.5 * Math.sin(seconds * 6)) : 1
+        // The area on the helmet: weak for a normal value, strong for a high value, and it beats while the value rises.
+        item.areaMaterial.color.setHex(COLOR[level])
+        item.areaMaterial.opacity = (level === 'alert' ? 0.62 : level === 'caution' ? 0.46 : 0.16) * (rise.includes(sensor.id) ? 0.75 + 0.25 * Math.sin(seconds * 6) : 1)
         const size = HELMET.radius * (level === 'alert' ? 0.62 : level === 'caution' ? 0.5 : 0.4) * beat * (on === sensor.id ? 1.3 : 1)
         item.glow.scale.set(size, size, 1)
 
@@ -250,8 +325,11 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
         point.project(camera)
         const x = ((point.x + 1) / 2) * width
         const y = ((1 - point.y) / 2) * height
-        // The label is next to the light, each one to its own side, so two labels do not meet.
-        const [sideX, sideY] = LABEL_SIDE[sensor.id] ?? [0, -1]
+        // The label is outside the light, on the line from the middle of the helmet through the light.
+        // A light near the middle of the helmet puts its label down and to the right.
+        const away = Math.hypot(x - middleX, y - middleY)
+        const sideX = away > width * 0.05 ? (x - middleX) / away : 0.86
+        const sideY = away > width * 0.05 ? (y - middleY) / away : 0.5
         const labelX = Math.max(26, Math.min(width - 26, x + sideX * LABEL_OUT))
         const labelY = Math.max(16, Math.min(height - 16, y + sideY * LABEL_OUT))
         label.style.transform = `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`
@@ -281,6 +359,7 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
         }
       })
       glowMap.dispose()
+      fadeMap.dispose()
       pmrem.dispose()
       draco.dispose()
       renderer.dispose()
@@ -323,7 +402,6 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
           </button>
         )
       })}
-      <p className="hm-3d-credit">{t('Model: NASA 3D Resources, Extravehicular Mobility Unit')}</p>
     </div>
   )
 }

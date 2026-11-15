@@ -3,17 +3,23 @@
 //
 // The sensors and their values are a simulation. No real suit data is behind them.
 
-// A sensor and its place on the picture of the helmet (front view), in percent of the width
-// and the height of the picture. The places come from the 3D model of the page.
-export type Sensor = { id: string; label: string; x: number; y: number }
+// The area of the helmet where a sensor is.
+export type Zone = 'front' | 'back'
+
+// A sensor on the inside of the helmet.
+//   dir    its place as a direction from the middle of the helmet, in helmet radii:
+//          x to the right of a viewer who looks at the visor, y up, z out of the visor.
+//   front  its place in the still picture from the front, in percent of the width and the
+//          height of the picture. null: this picture does not show the sensor.
+//   back   the same for the still picture from the back.
+// The places in the pictures come from the 3D model of the page (see "__helmetShot" in
+// web/src/helmet/Helmet3D.tsx), so a sensor is at the same place of the helmet in both views.
+export type Sensor = { id: string; label: string; where: string; zone: Zone; dir: [number, number, number]; front: [number, number] | null; back: [number, number] | null }
 export const SENSORS: Sensor[] = [
-  { id: 'top', label: 'Top', x: 50, y: 18.44 },
-  { id: 'top-left', label: 'Top left', x: 33.9, y: 26.12 },
-  { id: 'top-right', label: 'Top right', x: 66.1, y: 26.12 },
-  { id: 'left', label: 'Left', x: 28.43, y: 39.94 },
-  { id: 'right', label: 'Right', x: 71.57, y: 39.94 },
-  { id: 'mouth', label: 'Mouth', x: 50, y: 51.29 },
-  { id: 'neck', label: 'Neck ring', x: 50, y: 61.05 },
+  { id: 'forehead', label: 'Forehead', where: 'At the front of the helmet, near the forehead.', zone: 'front', dir: [0, 0.62, 0.76], front: [50, 25.38], back: null },
+  { id: 'mouth', label: 'Mouth', where: 'At the front of the helmet, a little in front of the mouth.', zone: 'front', dir: [0, -0.3, 0.94], front: [50, 46.64], back: null },
+  { id: 'neck', label: 'Neck', where: 'At the front of the helmet, below the mouth, near the neck ring.', zone: 'front', dir: [0, -0.88, 0.45], front: [50, 58.93], back: null },
+  { id: 'back', label: 'Back of the head', where: 'At the back of the helmet, behind the head.', zone: 'back', dir: [0, 0.1, -1], front: null, back: [50, 37.32] },
 ]
 export const SENSOR_IDS = SENSORS.map((sensor) => sensor.id)
 
@@ -38,9 +44,9 @@ export const DEFAULT_RATE = RATES[1]
 // A routine moves some sensors to a target value, step by step. It stands for one cause.
 export type Routine = { id: string; label: string; about: string; sensors: string[]; target: number }
 export const ROUTINES: Routine[] = [
-  { id: 'top-right', label: 'Top right rises', about: 'CO2 collects at the top right of the helmet.', sensors: ['top-right', 'right', 'top'], target: 4.4 },
-  { id: 'left', label: 'Left side rises', about: 'CO2 collects at the left side of the helmet.', sensors: ['top-left', 'left'], target: 3.6 },
-  { id: 'mouth', label: 'Mouth area rises', about: 'The air flow in front of the mouth is weak, so breath stays there.', sensors: ['mouth', 'neck'], target: 5 },
+  { id: 'mouth', label: 'Mouth and neck rise', about: 'The air flow in front of the mouth is weak, so breath stays at the front and low in the helmet.', sensors: ['mouth', 'neck'], target: 4.6 },
+  { id: 'forehead', label: 'Forehead rises', about: 'CO2 collects high at the front of the helmet.', sensors: ['forehead'], target: 3.6 },
+  { id: 'back', label: 'Back of the head rises', about: 'CO2 collects behind the head, where the air flow is weak.', sensors: ['back'], target: 4.2 },
   { id: 'all', label: 'All sensors rise', about: 'The fan of the suit slows down, so CO2 rises in the whole helmet.', sensors: SENSOR_IDS, target: 3.8 },
 ]
 

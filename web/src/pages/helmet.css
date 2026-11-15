@@ -1,57 +1,79 @@
-/* The helmet page: the alert and the drawing. */
-.hm-main { display: grid; justify-items: center; gap: 18px; padding-top: 8px; }
-.hm-banner { width: min(100%, 720px); min-height: 64px; display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border); font-size: clamp(1rem, 0.9rem + 0.6vw, 1.25rem); font-weight: 500; line-height: 1.35; transition: border-color 0.3s ease, color 0.3s ease; }
+/* The helmet page. On a phone: the astronaut, then the information below it.
+   On a wide screen: the astronaut at the left, the information at the right. */
+.hm-main { display: grid; gap: 20px; padding-top: 8px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+.hm-model { display: grid; justify-items: center; gap: 12px; min-width: 0; }
+.hm-info { display: grid; gap: 14px; min-width: 0; align-content: start; }
+.hm-view button { min-height: 36px; padding: 0 16px; }
+.hm-credit { font-size: 0.6875rem; color: var(--text-muted); text-align: center; }
+
+.hm-banner { min-height: 64px; display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border); font-size: clamp(1rem, 0.9rem + 0.5vw, 1.1875rem); font-weight: 500; line-height: 1.35; transition: border-color 0.3s ease, color 0.3s ease; }
 .hm-banner-normal { color: var(--good); }
 .hm-banner-caution { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 60%, transparent); }
 .hm-banner-alert { color: var(--critical); border-color: var(--critical); }
 
-/* The 2D view: a still picture of the NASA suit model, with one light for each sensor on top.
-   The picture tilts a little toward the pointer, and a soft light passes over it now and then. */
-.hm-stage { position: relative; width: min(100%, 640px, calc((100dvh - 300px) * 0.95)); aspect-ratio: 1 / 1; perspective: 900px; }
-.hm-tilt { position: absolute; inset: 0; transform: rotateY(calc(var(--look-x, 0) * 7deg)) rotateX(calc(var(--look-y, 0) * -5deg)); transition: transform 0.3s ease-out; transform-style: preserve-3d; animation: hm-float 7s ease-in-out infinite; }
-@keyframes hm-float { 50% { translate: 0 -5px; } }
-.hm-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; user-select: none; -webkit-mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); }
-.hm-sweep { position: absolute; left: 30%; top: 16%; width: 40%; height: 46%; border-radius: 50%; overflow: hidden; pointer-events: none; }
-.hm-sweep::after { content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.22), transparent); animation: hm-sweep 8s ease-in-out infinite; }
-@keyframes hm-sweep { 0%, 60% { translate: 0 0; } 90%, 100% { translate: 480% 0; } }
+.hm-text-normal { color: var(--good); }
+.hm-text-caution { color: var(--warning); }
+.hm-text-alert { color: var(--critical); }
 
-/* A sensor: a light with a glow, a thin line, and a label with the value. */
-.hm-node { position: absolute; width: 0; height: 0; min-height: 0; padding: 0; border: 0; background: none; color: var(--good); cursor: pointer; transform: translateZ(20px); }
-.hm-node:active:not(:disabled) { transform: translateZ(20px); }
-.hm-node-dot { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 2px rgba(10, 12, 16, 0.75); transition: background-color 0.4s ease, scale 0.15s ease; }
-.hm-node-glow { position: absolute; left: -26px; top: -26px; width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle, currentColor 0%, transparent 68%); opacity: 0.55; transition: opacity 0.4s ease; }
-.hm-text-caution .hm-node-glow { opacity: 0.75; }
-.hm-text-alert .hm-node-glow { opacity: 0.95; }
-.hm-rising .hm-node-glow { animation: hm-beat 1s ease-in-out infinite; }
-@keyframes hm-beat { 50% { scale: 1.6; opacity: 0.25; } }
-.hm-node-line { position: absolute; left: 0; top: 0; width: 46px; height: 1px; background: currentColor; opacity: 0.7; transform-origin: 0 50%; rotate: atan2(var(--side-y), var(--side-x)); }
-.hm-node-label { position: absolute; left: calc(var(--side-x) * 46px); top: calc(var(--side-y) * 46px); translate: -50% -50%; min-width: 44px; height: 30px; padding: 0 9px; display: grid; place-items: center; border-radius: var(--radius-pill); border: 1px solid currentColor; background: color-mix(in srgb, var(--bg) 80%, transparent); font-size: 0.8125rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; transition: background-color 0.2s ease, color 0.2s ease; }
-.hm-node:hover .hm-node-dot, .hm-node:focus-visible .hm-node-dot { scale: 1.3; }
+/* The 2D view: two still pictures of the NASA suit model, from the front and from the back.
+   The pictures do not move. Only the areas and the lights of the sensors change. */
+.hm-stills { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.hm-still { margin: 0; display: grid; gap: 4px; justify-items: center; min-width: 0; }
+.hm-still figcaption { font-size: 0.8125rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.hm-still-box { position: relative; width: 100%; aspect-ratio: 1 / 1; container-type: inline-size; }
+.hm-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; user-select: none; -webkit-mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); }
+/* A soft glow behind the astronaut, in both views. */
+.hm-still-box::before, .hm-3d::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 50% 48% at 50% 40%, rgba(132, 160, 255, 0.16), transparent 70%); pointer-events: none; }
+
+/* A sensor in a picture: a colored area on the helmet, a light, a thin line, and a label with the value. */
+.hm-node { position: absolute; width: 0; height: 0; min-height: 0; padding: 0; border: 0; background: none; color: var(--good); cursor: pointer; transition: none; }
+.hm-node:active:not(:disabled) { transform: none; }
+/* The area: its size is a part of the picture, so it covers the same part of the helmet at each screen size. */
+.hm-area { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+.hm-area::before { content: ''; position: absolute; width: 21cqw; height: 21cqw; left: -10.5cqw; top: -10.5cqw; border-radius: 50%; background: radial-gradient(circle, currentColor 0%, currentColor 30%, transparent 70%); opacity: 0.22; transition: opacity 0.4s ease; }
+.hm-text-caution .hm-area::before { opacity: 0.5; }
+.hm-text-alert .hm-area::before { opacity: 0.66; }
+.hm-rising .hm-area::before { animation: hm-beat 1s ease-in-out infinite; }
+@keyframes hm-beat { 50% { scale: 1.18; opacity: 0.3; } }
+.hm-node-dot { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 2px rgba(10, 12, 16, 0.8); transition: background-color 0.4s ease; }
+.hm-node-line { position: absolute; top: 0; left: 0; width: 17cqw; height: 1px; background: currentColor; opacity: 0.75; transform-origin: 0 50%; scale: var(--side-x) 1; }
+.hm-node-label { position: absolute; left: calc(var(--side-x) * 17cqw); top: 0; translate: calc(-50% + var(--side-x) * 50%) -50%; min-width: 42px; height: 28px; padding: 0 8px; display: grid; place-items: center; border-radius: var(--radius-pill); border: 1px solid currentColor; background: color-mix(in srgb, var(--bg) 84%, transparent); font-size: 0.8125rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .hm-node:focus-visible { outline: none; }
 .hm-node:focus-visible .hm-node-label, .hm-on .hm-node-label { background: var(--inverse-bg); color: var(--inverse-text); border-color: var(--inverse-bg); }
 /* A finger needs a larger target than the light. */
 .hm-node::before { content: ''; position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; }
 
-/* The switch between the two views, and the 3D view: a canvas with one button for each sensor on top. */
-.hm-view button { min-height: 36px; padding: 0 16px; }
-.hm-3d { position: relative; width: min(100%, 520px, calc((100dvh - 330px) * 0.87)); min-width: min(100%, 280px); aspect-ratio: 400 / 460; touch-action: pan-y; }
-.hm-3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+/* The 3D view: a canvas with the NASA model, and one line and one label for each sensor on top. */
+.hm-3d { position: relative; width: min(100%, 640px, calc(100dvh - 230px)); min-width: min(100%, 280px); aspect-ratio: 1 / 1; touch-action: pan-y; }
+.hm-3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; opacity: 0; transition: opacity 0.5s ease; -webkit-mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); }
 .hm-3d canvas:active { cursor: grabbing; }
+.hm-3d-ready canvas { opacity: 1; }
+.hm-3d-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.hm-3d-lines line { stroke: currentColor; stroke-width: 1.2; }
 .hm-3d-label { position: absolute; left: 0; top: 0; min-height: 0; min-width: 44px; height: 30px; padding: 0 8px; border-radius: var(--radius-pill); border: 1px solid currentColor; background: color-mix(in srgb, var(--bg) 78%, transparent); font-size: 0.8125rem; font-weight: 700; font-variant-numeric: tabular-nums; transition: opacity 0.2s ease; will-change: transform; }
 .hm-3d-label:active:not(:disabled) { transform: none; }
 .hm-3d-on { background: var(--inverse-bg); color: var(--inverse-text) !important; border-color: var(--inverse-bg); }
+.hm-3d-label, .hm-3d-lines { visibility: hidden; }
+.hm-3d-ready .hm-3d-label, .hm-3d-ready .hm-3d-lines { visibility: visible; }
+.hm-3d-wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-muted); }
 
-/* The text of the selected sensor. */
-.hm-detail { width: min(100%, 720px); min-height: 84px; display: grid; gap: 6px; align-content: center; padding: 14px 20px; border-radius: var(--radius-sm); background: var(--surface); }
-.hm-detail-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
-.hm-detail-value { font-variant-numeric: tabular-nums; font-weight: 500; }
-.hm-detail-step { font-size: 0.9375rem; line-height: 1.45; color: var(--text-soft); }
-.hm-text-normal { color: var(--good); }
-.hm-text-caution { color: var(--warning); }
-.hm-text-alert { color: var(--critical); }
+/* The list of the sensors: one row for each, with its value, its place, and what to do. */
+.hm-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.hm-row { width: 100%; min-height: 0; display: grid; gap: 4px; justify-items: start; justify-content: stretch; align-items: start; text-align: left; padding: 14px 18px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border); line-height: 1.4; }
+.hm-row-on { border-color: var(--text-muted); background: var(--surface-2); }
+.hm-row-top { width: 100%; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 16px; }
+.hm-row-top strong { font-size: 1rem; font-weight: 600; }
+.hm-row-value { font-variant-numeric: tabular-nums; font-weight: 500; }
+.hm-row-where { font-size: 0.8125rem; color: var(--text-muted); }
+.hm-row-step { font-size: 0.875rem; color: var(--text-soft); }
 
-.hm-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px; font-size: 0.875rem; }
-.hm-note { max-width: 72ch; font-size: 0.8125rem; line-height: 1.55; color: var(--text-muted); text-align: center; }
+.hm-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 0.875rem; }
+.hm-note { max-width: 72ch; font-size: 0.8125rem; line-height: 1.55; color: var(--text-muted); }
+
+@media (min-width: 980px) {
+  .hm-main { grid-template-columns: minmax(0, 7fr) minmax(320px, 5fr); gap: 32px; }
+  .hm-model { position: sticky; top: 84px; }
+}
 
 /* The helmet controls of the simulator page. */
 .hc-routines { display: grid; gap: 8px; }
@@ -65,16 +87,3 @@
 .hc-sensor-value.hm-normal { color: var(--good); }
 .hc-sensor-value.hm-caution { color: var(--warning); }
 .hc-sensor-value.hm-alert { color: var(--critical); }
-
-/* The 3D view with the NASA model: lines from each light to its label, and small texts. */
-.hm-3d { width: min(100%, 640px, calc((100dvh - 300px) * 0.95)); aspect-ratio: 1 / 1; }
-.hm-3d canvas { opacity: 0; transition: opacity 0.5s ease; }
-.hm-3d-ready canvas { opacity: 1; }
-/* The view fades out at its edges, so the suit does not end at a hard line. */
-.hm-3d canvas { -webkit-mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); }
-.hm-3d-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.hm-3d-lines line { stroke: currentColor; stroke-width: 1.2; }
-.hm-3d-label, .hm-3d-lines { visibility: hidden; }
-.hm-3d-ready .hm-3d-label, .hm-3d-ready .hm-3d-lines { visibility: visible; }
-.hm-3d-wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-muted); }
-.hm-3d-credit { position: absolute; left: 0; right: 0; bottom: -4px; text-align: center; font-size: 0.6875rem; color: var(--text-muted); pointer-events: none; }

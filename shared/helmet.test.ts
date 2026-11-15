@@ -22,14 +22,14 @@ describe('helmet sensors', () => {
   })
 
   it('raises only the sensors of a routine, step by step, up to the target', () => {
-    const routine = ROUTINES.find((item) => item.id === 'top-right')!
-    let state = startRoutine(calmHelmet(0.1), 'top-right')
+    const routine = ROUTINES.find((item) => item.id === 'mouth')!
+    let state = startRoutine(calmHelmet(0.1), 'mouth')
     assert.deepEqual(risingSensors(state), SENSOR_IDS.filter((id) => routine.sensors.includes(id)))
     state = stepHelmet(state, 5)
-    assert.equal(state.sensors['top-right'].value, CALM_MMHG + 0.5)
-    assert.equal(state.sensors.left.value, CALM_MMHG)
+    assert.equal(state.sensors.mouth.value, CALM_MMHG + 0.5)
+    assert.equal(state.sensors.back.value, CALM_MMHG)
     for (let second = 0; second < 100; second++) state = stepHelmet(state, 1)
-    assert.equal(state.sensors['top-right'].value, routine.target)
+    assert.equal(state.sensors['mouth'].value, routine.target)
     assert.deepEqual(risingSensors(state), [])
     assert.deepEqual(sensorsAt(state, 'alert'), SENSOR_IDS.filter((id) => routine.sensors.includes(id)))
   })
@@ -44,7 +44,7 @@ describe('helmet sensors', () => {
   })
 
   it('goes back to the calm value', () => {
-    let state = clearHelmet(setSensor(startRoutine(calmHelmet(1), 'all'), 'top', 6))
+    let state = clearHelmet(setSensor(startRoutine(calmHelmet(1), 'all'), 'forehead', 6))
     assert.equal(state.routine, null)
     for (let second = 0; second < 10; second++) state = stepHelmet(state, 1)
     assert.ok(SENSOR_IDS.every((id) => state.sensors[id].value === CALM_MMHG))

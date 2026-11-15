@@ -269,21 +269,37 @@ More points that the research found:
 
 ## The helmet page
 
-The page `/helmet` is a small third page. It shows an astronaut in a space suit with 7 CO2 sensors around the helmet: top, top left, top right, left, right, mouth, and neck ring. Each sensor is a light with its value in mmHg. A switch selects a still picture (2D) or the 3D model, which you can turn with a drag. A click or a tap on a sensor shows its value and what to do.
+The page `/helmet` is a small third page. It shows an astronaut in a space suit with four CO2 sensors inside the helmet:
 
-The astronaut is the NASA model "Extravehicular Mobility Unit" from NASA 3D Resources (https://github.com/nasa/NASA-3D-Resources). NASA says that these assets are free and without copyright. The model is in `web/public/models/emu.glb`, and the 2D picture `astronaut-front.webp` is a still of the same model. The files in `web/public/draco/` are the decoder of the 3D library for this model. A short alert above the drawing names the sensors where the CO2 rises or is high.
+| Sensor | Place |
+|---|---|
+| Forehead | At the front of the helmet, near the forehead. |
+| Mouth | At the front of the helmet, a little in front of the mouth. |
+| Neck | At the front of the helmet, below the mouth, near the neck ring. |
+| Back of the head | At the back of the helmet, behind the head. |
 
-| Light | CO2 partial pressure |
+Each sensor has a light, a label with its value in mmHg, and a colored area on the helmet, so you see where the CO2 is: at the front or at the back, high or low.
+
+| Color | CO2 partial pressure |
 |---|---|
 | Green | below 2.3 mmHg |
 | Yellow | 2.3 to 3.0 mmHg |
 | Red | above 3.0 mmHg |
 
+A switch selects the view:
+
+- **2D:** two still pictures, from the front and from the back. They do not move.
+- **3D:** the model itself. You can turn it with a drag.
+
+The places of the sensors in the pictures come from the 3D model, so both views show a sensor at the same place of the helmet. On a wide screen, the information is at the right of the astronaut: a short alert that names the sensors where the CO2 rises or is high, and one row for each sensor with its value, its place, and what to do. On a phone, the information is below the astronaut.
+
 The tab "Helmet" of the simulator page controls it:
 
 - A slider for each sensor sets its value at once.
-- A routine raises some sensors step by step: "Top right rises", "Left side rises", "Mouth area rises", and "All sensors rise". The page then shows, for example, "CO2 levels are rising at these sensors: Top, Top right, Right."
+- A routine raises some sensors step by step: "Mouth and neck rise", "Forehead rises", "Back of the head rises", and "All sensors rise". The page then shows, for example, "CO2 levels are rising at these sensors: Mouth, Neck."
 - "Back to calm" moves all sensors back step by step.
+
+The astronaut is the NASA model "Extravehicular Mobility Unit" from NASA 3D Resources (https://github.com/nasa/NASA-3D-Resources). NASA says that these assets are free and without copyright. The page shows it with few details: no backpack arms, no patches, and no text. The model is in `web/public/models/emu.glb`, the two pictures are stills of the same model, and the files in `web/public/draco/` are the decoder of the 3D library for this model. In development, `window.__helmetShot(1100)` in the 3D view gives the two pictures and the sensor places again.
 
 The sensors and their values are a simulation. No real suit data is behind them. **Assumption:** the two color limits are those of a cabin (first reported symptoms at 2.3 mmHg, NASA limit of 3.0 mmHg for the 1-hour average), because we have no checked limit for the air inside a helmet. The calm value of 1.2 mmHg is our choice. The rules are in `shared/helmet.ts`, the server part is in `server/src/helmet.ts`, and the page is `web/src/pages/Helmet.tsx`.
 
