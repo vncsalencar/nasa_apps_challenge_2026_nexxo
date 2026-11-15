@@ -1,19 +1,33 @@
-// The 3D view of the helmet page: the NASA model of the space suit (Extravehicular Mobility
-// Unit), framed on the helmet, with the CO2 sensors as lights around the visor. A person can
-// turn it with a drag. Plain three.js, loaded only when a person selects the 3D view.
+// The 3D view of the helmet page: the helmet of the space suit of Neil Armstrong (Apollo 11),
+// from the 3D scan of the Smithsonian Institution, with the CO2 sensors as lights and colored
+// areas on the helmet. A person can turn it with a drag. Plain three.js, loaded only when a
+// person selects the 3D view. The page draws the scan as it is: its shape and its pictures.
 //
-// Model: NASA 3D Resources, "Extravehicular Mobility Unit" (https://github.com/nasa/NASA-3D-Resources).
+// Model: Smithsonian Institution, National Air and Space Museum, "Armstrong Space Suit"
+// (https://3d.si.edu/object/3d/armstrong-space-suit:d8c63ba6-4ebc-11ea-b77f-2e728ce88125).
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { SENSORS, levelOf, type HelmetState, type Level } from '../../../shared/helmet.ts'
 import { fmt, t } from '../i18n.ts'
 
-// The helmet in the model: its middle, its radius, and the side where the visor is (1: toward +z).
-const HELMET = { center: new THREE.Vector3(0.015, 1.85, 0.155), radius: 0.2, front: 1 }
+// The helmet in the file of the model: its middle and its radius in the units of the file,
+// the turn that points the visor to the viewer, and the height below which the page draws nothing.
+const MODEL = { file: '/models/armstrong.glb', center: new THREE.Vector3(0.015, 1.66, 0.07), radius: 0.182, turn: 0, cut: 1.475 }
+if (import.meta.env.DEV) {
+  // For development only: the address can change these values, to find the helmet in a new model.
+  const query = new URLSearchParams(location.search)
+  const numbers = (name: string) => query.get(name)?.split(',').map(Number)
+  const middle = numbers('mc')
+  if (middle) MODEL.center.set(middle[0], middle[1], middle[2])
+  MODEL.radius = numbers('mr')?.[0] ?? MODEL.radius
+  MODEL.turn = numbers('mt')?.[0] ?? MODEL.turn
+  MODEL.cut = numbers('mcut')?.[0] ?? MODEL.cut
+}
+// The page draws the helmet with this radius. The model gets the scale that fits.
+const HELMET = { radius: 0.2, front: 1 }
 const COLOR: Record<Level, number> = { normal: 0x7ddba3, caution: 0xf5b955, alert: 0xff7a66 }
 const LEVEL_WORD: Record<Level, string> = { normal: t('normal'), caution: t('raised'), alert: t('high') }
 // How far the label of a sensor is from its light, in pixels.
@@ -73,6 +87,10 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
     renderer.setClearColor(0x000000, 0)
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 0.8
+    // The page cuts the suit below the helmet with a flat plane, so the edge is clean.
+    renderer.localClippingEnabled = true
+    const cutLocal = new THREE.Plane(new THREE.Vector3(0, 1, 0), -((MODEL.cut - MODEL.center.y) * HELMET.radius) / MODEL.radius)
+    const cut = cutLocal.clone()
     const canvas = renderer.domElement
     box.prepend(canvas)
 
@@ -95,8 +113,8 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
     scene.add(fill)
 
     const camera = new THREE.PerspectiveCamera(26, 1, 0.05, 30)
-    camera.position.set(0, 0.02, 2.05)
-    camera.lookAt(0, -0.1, 0)
+    camera.position.set(0, 0.02, 1.55)
+    camera.lookAt(0, -0.02, 0)
 
     // The model turns around the middle of the helmet.
     const pivot = new THREE.Group()
@@ -141,57 +159,34 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
     const loader = new GLTFLoader()
     loader.setDRACOLoader(draco)
     loader.load(
-      '/models/emu.glb',
+      MODEL.file,
       (file) => {
         if (gone) return
         const model = file.scene
-        model.position.sub(HELMET.center)
-        // In the file, the astronaut looks toward -z. Turn it, so the visor points to the viewer.
+        model.position.sub(MODEL.center)
         const turned = new THREE.Group()
-        turned.rotation.y = Math.PI
+        turned.rotation.y = MODEL.turn
+        turned.scale.setScalar(HELMET.radius / MODEL.radius)
         turned.add(model)
         model.traverse((object) => {
           if (!(object instanceof THREE.Mesh)) return
-          // The normals of the file give little shading. Join the points that are at the same place
-          // and compute the normals again, so each surface is smooth.
+          // Only the helmet: remove each triangle that is fully below the cut height. The plane then makes the edge straight.
           const position = object.geometry.getAttribute('position')
-          const uv = object.geometry.getAttribute('uv')
-          const plain = new THREE.BufferGeometry()
-          plain.setAttribute('position', position)
-          if (uv) plain.setAttribute('uv', uv)
-          plain.setIndex(object.geometry.getIndex())
-          for (const group of object.geometry.groups) plain.addGroup(group.start, group.count, group.materialIndex)
-          const joined = mergeVertices(plain, 1e-5)
-          joined.computeVertexNormals()
-          object.geometry.dispose()
-          object.geometry = joined
+          const index = object.geometry.getIndex()
+          if (index) {
+            const kept: number[] = []
+            for (let i = 0; i < index.count; i += 3) {
+              const a = index.getX(i)
+              const b = index.getX(i + 1)
+              const c = index.getX(i + 2)
+              if (Math.max(position.getY(a), position.getY(b), position.getY(c)) >= MODEL.cut - 0.02) kept.push(a, b, c)
+            }
+            object.geometry.setIndex(kept)
+          }
+          // The cut leaves the helmet open at the bottom, so draw the inner side too.
           for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-            if (!(material instanceof THREE.MeshStandardMaterial)) continue
-            // A calm model with few details: no backpack arms, no patches, and no text.
-            if (/jetpack|lambert5SG|initialShadingGroup/.test(material.name)) {
-              material.visible = false
-              continue
-            }
-            const { r, g, b } = material.color
-            const hadPicture = Boolean(material.map)
-            material.map = null
-            material.metalness = 0
-            if (!hadPicture && r > 0.45 && g > 0.3 && b < 0.3 && r - b > 0.25) {
-              // The gold parts are the visor: a mirror with a gold tint, as on the real helmet.
-              material.color.setHex(0xd9a441)
-              material.metalness = 1
-              material.roughness = 0.06
-              material.envMapIntensity = 2.2
-            } else if (!hadPicture && r > 0.8 && g < 0.35) {
-              // The red ring of the helmet and the red stripes stay, a little darker.
-              material.color.setHex(0xb8323a)
-              material.roughness = 0.6
-            } else {
-              // All the rest is the white cloth of the suit.
-              material.color.setHex(r + g + b < 1.5 && !hadPicture ? 0xb9b6ae : 0xecebe6)
-              material.roughness = 0.92
-            }
-            material.needsUpdate = true
+            material.side = THREE.DoubleSide
+            material.clippingPlanes = [cut]
           }
         })
         pivot.add(turned)
@@ -214,12 +209,12 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
     observer.observe(box)
     resize()
 
-    // A drag turns the astronaut. With no drag for some seconds, the astronaut turns slowly from side to side.
+    // A drag turns the helmet. With no drag for some seconds, the helmet turns slowly from side to side.
     let yaw = 0
     let pitch = 0
     let dragging: { x: number; y: number; yaw: number; pitch: number } | null = null
     let lastDrag = -Infinity
-    // The speed of the turn at the end of a drag. The astronaut keeps this speed for a moment.
+    // The speed of the turn at the end of a drag. The helmet keeps this speed for a moment.
     let spin = 0
     let lastX = 0
     const down = (event: PointerEvent) => {
@@ -249,7 +244,7 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
     const middle = new THREE.Vector3()
     let frame = 0
     // For development only: window.__helmetShot(size) gives the still picture of the 2D view
-    // (the astronaut from the front, with no sensor lights) and the place of each sensor on it.
+    // (the helmet from the front, with no sensor lights) and the place of each sensor on it.
     if (import.meta.env.DEV) {
       // window.__helmetShot(size) gives the two still pictures of the 2D view (from the front and
       // from the back, with no sensor lights) and the place of each sensor in each picture.
@@ -265,6 +260,7 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
         const shot = (turn: number) => {
           pivot.rotation.set(0, turn, 0)
           pivot.updateMatrixWorld(true)
+          cut.copy(cutLocal).applyMatrix4(pivot.matrixWorld)
           renderer.render(scene, camera)
           const url = canvas.toDataURL('image/webp', 0.92)
           const places: Record<string, [number, number] | null> = {}
@@ -298,6 +294,8 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
       pivot.rotation.set(pitch, yaw, 0)
       // A slow float, as in free fall.
       pivot.position.y = Math.sin(seconds * 0.7) * 0.004
+      pivot.updateMatrixWorld(true)
+      cut.copy(cutLocal).applyMatrix4(pivot.matrixWorld)
 
       const { helmet: state, rising: rise, selected: on } = live.current
       const width = box.clientWidth
@@ -313,7 +311,7 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
         const beat = rise.includes(sensor.id) ? 1 + 0.5 * (0.5 + 0.5 * Math.sin(seconds * 6)) : 1
         // The area on the helmet: weak for a normal value, strong for a high value, and it beats while the value rises.
         item.areaMaterial.color.setHex(COLOR[level])
-        item.areaMaterial.opacity = (level === 'alert' ? 0.62 : level === 'caution' ? 0.46 : 0.16) * (rise.includes(sensor.id) ? 0.75 + 0.25 * Math.sin(seconds * 6) : 1)
+        item.areaMaterial.opacity = (level === 'alert' ? 0.78 : level === 'caution' ? 0.66 : 0.2) * (rise.includes(sensor.id) ? 0.75 + 0.25 * Math.sin(seconds * 6) : 1)
         const size = HELMET.radius * (level === 'alert' ? 0.62 : level === 'caution' ? 0.5 : 0.4) * beat * (on === sensor.id ? 1.3 : 1)
         item.glow.scale.set(size, size, 1)
 
@@ -368,7 +366,7 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
   }, [])
 
   return (
-    <div ref={wrap} className={ready ? 'hm-3d hm-3d-ready' : 'hm-3d'} role="group" aria-label={t('Astronaut in a space suit helmet with CO2 sensors, 3D view. Drag to turn.')}>
+    <div ref={wrap} className={ready ? 'hm-3d hm-3d-ready' : 'hm-3d'} role="group" aria-label={t('Space suit helmet with CO2 sensors, 3D view. Drag to turn.')}>
       {!ready && <p className="hm-3d-wait">{t('Loading the 3D model…')}</p>}
       <svg className="hm-3d-lines" aria-hidden="true">
         {SENSORS.map((sensor) => (

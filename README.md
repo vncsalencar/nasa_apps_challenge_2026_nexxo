@@ -269,7 +269,7 @@ More points that the research found:
 
 ## The helmet page
 
-The page `/helmet` is a small third page. It shows an astronaut in a space suit with four CO2 sensors inside the helmet:
+The page `/helmet` is a small third page. It shows a space suit helmet with four CO2 sensors inside it:
 
 | Sensor | Place |
 |---|---|
@@ -291,7 +291,7 @@ A switch selects the view:
 - **2D:** two still pictures, from the front and from the back. They do not move.
 - **3D:** the model itself. You can turn it with a drag.
 
-The places of the sensors in the pictures come from the 3D model, so both views show a sensor at the same place of the helmet. On a wide screen, the information is at the right of the astronaut: a short alert that names the sensors where the CO2 rises or is high, and one row for each sensor with its value, its place, and what to do. On a phone, the information is below the astronaut.
+The places of the sensors in the pictures come from the 3D model, so both views show a sensor at the same place of the helmet. On a wide screen, the information is at the right of the helmet: a short alert that names the sensors where the CO2 rises or is high, and one row for each sensor with its value, its place, and what to do. On a phone, the information is below the helmet.
 
 The tab "Helmet" of the simulator page controls it:
 
@@ -299,7 +299,9 @@ The tab "Helmet" of the simulator page controls it:
 - A routine raises some sensors step by step: "Mouth and neck rise", "Forehead rises", "Back of the head rises", and "All sensors rise". The page then shows, for example, "CO2 levels are rising at these sensors: Mouth, Neck."
 - "Back to calm" moves all sensors back step by step.
 
-The astronaut is the NASA model "Extravehicular Mobility Unit" from NASA 3D Resources (https://github.com/nasa/NASA-3D-Resources). NASA says that these assets are free and without copyright. The page shows it with few details: no backpack arms, no patches, and no text. The model is in `web/public/models/emu.glb`, the two pictures are stills of the same model, and the files in `web/public/draco/` are the decoder of the 3D library for this model. In development, `window.__helmetShot(1100)` in the 3D view gives the two pictures and the sensor places again.
+The helmet is the helmet of the space suit that Neil Armstrong used on Apollo 11. The model is the 3D scan of the Smithsonian Institution, National Air and Space Museum (https://3d.si.edu/object/3d/armstrong-space-suit:d8c63ba6-4ebc-11ea-b77f-2e728ce88125). The page draws the scan as it is and cuts it below the helmet. The model is in `web/public/models/armstrong.glb`, the two pictures are stills of the same model, and the files in `web/public/draco/` are the decoder of the 3D library for this model. In development, `window.__helmetShot(1100)` in the 3D view gives the two pictures and the sensor places again.
+
+**Usage terms of the model:** the scene file of the Smithsonian says "(c) Smithsonian Institution. All rights reserved." We did not find a CC0 mark for this model. The Smithsonian permits personal, educational, and other non-commercial use of such content, with a credit. So this project uses the model only for this non-commercial hackathon entry and shows the credit on the page. Do not use the model for a commercial purpose.
 
 The sensors and their values are a simulation. No real suit data is behind them. **Assumption:** the two color limits are those of a cabin (first reported symptoms at 2.3 mmHg, NASA limit of 3.0 mmHg for the 1-hour average), because we have no checked limit for the air inside a helmet. The calm value of 1.2 mmHg is our choice. The rules are in `shared/helmet.ts`, the server part is in `server/src/helmet.ts`, and the page is `web/src/pages/Helmet.tsx`.
 

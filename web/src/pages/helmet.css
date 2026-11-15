@@ -1,5 +1,5 @@
-/* The helmet page. On a phone: the astronaut, then the information below it.
-   On a wide screen: the astronaut at the left, the information at the right. */
+/* The helmet page. On a phone: the helmet, then the information below it.
+   On a wide screen: the helmet at the left, the information at the right. */
 .hm-main { display: grid; gap: 20px; padding-top: 8px; grid-template-columns: minmax(0, 1fr); align-items: start; }
 .hm-model { display: grid; justify-items: center; gap: 12px; min-width: 0; }
 .hm-info { display: grid; gap: 14px; min-width: 0; align-content: start; }
@@ -15,18 +15,18 @@
 .hm-text-caution { color: var(--warning); }
 .hm-text-alert { color: var(--critical); }
 
-/* The 2D view: two still pictures of the NASA suit model, from the front and from the back.
+/* The 2D view: two still pictures of the helmet model, from the front and from the back.
    The pictures do not move. Only the areas and the lights of the sensors change. */
 .hm-stills { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .hm-still { margin: 0; display: grid; gap: 4px; justify-items: center; min-width: 0; }
 .hm-still figcaption { font-size: 0.8125rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.04em; text-transform: uppercase; }
 .hm-still-box { position: relative; width: 100%; aspect-ratio: 1 / 1; container-type: inline-size; }
-.hm-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; user-select: none; -webkit-mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); }
-/* A soft glow behind the astronaut, in both views. */
+.hm-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; user-select: none; -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 46%, #000 80%, transparent 100%); mask-image: radial-gradient(ellipse 70% 70% at 50% 46%, #000 80%, transparent 100%); }
+/* A soft glow behind the helmet, in both views. */
 .hm-still-box::before, .hm-3d::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 50% 48% at 50% 40%, rgba(132, 160, 255, 0.16), transparent 70%); pointer-events: none; }
 
 /* A sensor in a picture: a colored area on the helmet, a light, a thin line, and a label with the value. */
-.hm-node { position: absolute; width: 0; height: 0; min-height: 0; padding: 0; border: 0; background: none; color: var(--good); cursor: pointer; transition: none; }
+.hm-node { position: absolute; width: 0; height: 0; min-height: 0; padding: 0; border: 0; background: none; cursor: pointer; transition: none; }
 .hm-node:active:not(:disabled) { transform: none; }
 /* The area: its size is a part of the picture, so it covers the same part of the helmet at each screen size. */
 .hm-area { position: absolute; left: 0; top: 0; width: 0; height: 0; }
@@ -43,9 +43,9 @@
 /* A finger needs a larger target than the light. */
 .hm-node::before { content: ''; position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; }
 
-/* The 3D view: a canvas with the NASA model, and one line and one label for each sensor on top. */
+/* The 3D view: a canvas with the helmet model, and one line and one label for each sensor on top. */
 .hm-3d { position: relative; width: min(100%, 640px, calc(100dvh - 230px)); min-width: min(100%, 280px); aspect-ratio: 1 / 1; touch-action: pan-y; }
-.hm-3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; opacity: 0; transition: opacity 0.5s ease; -webkit-mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 62% 62% at 50% 44%, #000 62%, transparent 100%); }
+.hm-3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; opacity: 0; transition: opacity 0.5s ease; -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 46%, #000 80%, transparent 100%); mask-image: radial-gradient(ellipse 70% 70% at 50% 46%, #000 80%, transparent 100%); }
 .hm-3d canvas:active { cursor: grabbing; }
 .hm-3d-ready canvas { opacity: 1; }
 .hm-3d-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }

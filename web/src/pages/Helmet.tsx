@@ -1,10 +1,10 @@
-// The helmet page: an astronaut in a space suit helmet, with four CO2 sensors inside the
+// The helmet page: a space suit helmet, with four CO2 sensors inside the
 // helmet: at the forehead, in front of the mouth, near the neck, and behind the head. Each
 // sensor has a light and a colored area on the helmet: green, yellow, or red, by its CO2
 // value. A short alert tells where the CO2 rises. The tab "Helmet" of the simulator page sets
 // the values and starts the routines.
 //
-// Two views: two still pictures of the NASA suit model, from the front and from the back (2D),
+// Two views: two still pictures of the helmet model, from the front and from the back (2D),
 // and the model itself, which a person can turn (3D). The places of the sensors in the
 // pictures come from the model, so both views show a sensor at the same place of the helmet.
 // The sensors and their values are a simulation. No real suit data is behind them.
@@ -40,12 +40,12 @@ const LABEL_SIDE: Record<string, number> = { forehead: 1, mouth: -1, neck: 1, ba
 
 type StillProps = { view: 'front' | 'back'; title: string; helmet: HelmetState; rising: string[]; selected: string | null; onSelect: (id: string) => void }
 
-// One still picture of the astronaut, with the area, the light, and the label of each sensor that this side shows.
+// One still picture of the helmet, with the area, the light, and the label of each sensor that this side shows.
 function Still({ view, title, helmet, rising, selected, onSelect }: StillProps) {
   return (
     <figure className="hm-still">
       <div className="hm-still-box">
-        <img className="hm-photo" src={`/models/astronaut-${view}.webp`} alt="" draggable={false} />
+        <img className="hm-photo" src={`/models/helmet-${view}.webp`} alt="" draggable={false} />
         {SENSORS.map((sensor) => {
           const place = sensor[view]
           if (!place) return null
@@ -122,8 +122,8 @@ export default function Helmet() {
       </header>
 
       <main className="hm-main">
-        {/* The astronaut. On a wide screen it is at the left, and the information is at the right. */}
-        <section className="hm-model" aria-label={t('Astronaut')}>
+        {/* The helmet. On a wide screen it is at the left, and the information is at the right. */}
+        <section className="hm-model" aria-label={t('Helmet')}>
           <div className="segmented hm-view" role="group" aria-label={t('View')}>
             <button type="button" aria-pressed={!threeD} onClick={() => choose(false)}>2D</button>
             <button type="button" aria-pressed={threeD} onClick={() => choose(true)}>3D</button>
@@ -133,14 +133,14 @@ export default function Helmet() {
               <Helmet3D helmet={helmet} rising={rising} selected={selected} onSelect={toggle} onFail={() => choose(false)} />
             </Suspense>
           ) : (
-            <div className="hm-stills" role="group" aria-label={t('Astronaut in a space suit helmet with CO2 sensors, from the front and from the back')}>
+            <div className="hm-stills" role="group" aria-label={t('Space suit helmet with CO2 sensors, from the front and from the back')}>
               <Still view="front" title={t('Front')} helmet={helmet} rising={rising} selected={selected} onSelect={toggle} />
               <Still view="back" title={t('Back')} helmet={helmet} rising={rising} selected={selected} onSelect={toggle} />
             </div>
           )}
           <p className="hm-credit">
-            {threeD && `${t('Drag the astronaut to turn it.')} `}
-            {t('Model: NASA 3D Resources, Extravehicular Mobility Unit')}
+            {threeD && `${t('Drag the helmet to turn it.')} `}
+            {t('Model: Smithsonian Institution, space suit of Neil Armstrong (Apollo 11)')}
           </p>
         </section>
 

@@ -16,10 +16,10 @@ export type Zone = 'front' | 'back'
 // web/src/helmet/Helmet3D.tsx), so a sensor is at the same place of the helmet in both views.
 export type Sensor = { id: string; label: string; where: string; zone: Zone; dir: [number, number, number]; front: [number, number] | null; back: [number, number] | null }
 export const SENSORS: Sensor[] = [
-  { id: 'forehead', label: 'Forehead', where: 'At the front of the helmet, near the forehead.', zone: 'front', dir: [0, 0.62, 0.76], front: [50, 25.38], back: null },
-  { id: 'mouth', label: 'Mouth', where: 'At the front of the helmet, a little in front of the mouth.', zone: 'front', dir: [0, -0.3, 0.94], front: [50, 46.64], back: null },
-  { id: 'neck', label: 'Neck', where: 'At the front of the helmet, below the mouth, near the neck ring.', zone: 'front', dir: [0, -0.88, 0.45], front: [50, 58.93], back: null },
-  { id: 'back', label: 'Back of the head', where: 'At the back of the helmet, behind the head.', zone: 'back', dir: [0, 0.1, -1], front: null, back: [50, 37.32] },
+  { id: 'forehead', label: 'Forehead', where: 'At the front of the helmet, near the forehead.', zone: 'front', dir: [0, 0.62, 0.76], front: [50, 28.26], back: null },
+  { id: 'mouth', label: 'Mouth', where: 'At the front of the helmet, a little in front of the mouth.', zone: 'front', dir: [0, -0.3, 0.94], front: [50, 57.12], back: null },
+  { id: 'neck', label: 'Neck', where: 'At the front of the helmet, below the mouth, near the neck ring.', zone: 'front', dir: [0, -0.88, 0.45], front: [50, 73.4], back: null },
+  { id: 'back', label: 'Back of the head', where: 'At the back of the helmet, behind the head.', zone: 'back', dir: [0, 0.1, -1], front: null, back: [50, 44.41] },
 ]
 export const SENSOR_IDS = SENSORS.map((sensor) => sensor.id)
 
