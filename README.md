@@ -32,8 +32,8 @@ Each sensor has a light, a label with its value in mmHg, and a colored area on t
 
 A switch selects the view:
 
-- **2D:** two still pictures, from the front and from the back. They do not move.
-- **3D:** the model itself. You can turn it with a drag.
+- **3D:** the model itself. You can turn it with a drag. The page starts with this view on each device that can draw 3D graphics.
+- **2D:** two still pictures, from the front and from the back. They do not move. The page starts with this view when the device cannot draw 3D graphics, or when the person selected 2D before.
 
 The places of the sensors in the pictures come from the 3D model, so both views show a sensor at the same place of the helmet.
 

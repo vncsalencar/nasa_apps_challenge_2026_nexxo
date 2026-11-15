@@ -17,15 +17,28 @@ import { helmetAlert, useHelmet } from '../helmet/useHelmet.ts'
 import './page.css'
 import './helmet.css'
 
-// The 3D view loads only when a person selects it, because it brings a large 3D library and the model.
+// The 3D view is in its own file, because it brings a large 3D library and the model.
 const Helmet3D = lazy(() => import('../helmet/Helmet3D.tsx'))
 const VIEW_KEY = 'nexxo-helmet-3d'
-function storedThreeD() {
+// The browser can draw 3D graphics.
+function canDraw3D() {
   try {
-    return localStorage.getItem(VIEW_KEY) === 'on'
+    const canvas = document.createElement('canvas')
+    return Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'))
   } catch {
     return false
   }
+}
+// The page starts with the 3D model on each device that can draw it. A person who selected the
+// pictures before keeps the pictures.
+function firstThreeD() {
+  let stored: string | null = null
+  try {
+    stored = localStorage.getItem(VIEW_KEY)
+  } catch {
+    // Without the storage, the page starts with the 3D model.
+  }
+  return stored !== 'off' && canDraw3D()
 }
 
 const SHAPE = { normal: '●', caution: '▲', alert: '■' } as const
@@ -84,7 +97,7 @@ export default function Helmet() {
   const { helmet, online } = useHelmet()
   const [selected, setSelected] = useState<string | null>(null)
   // The pictures or the 3D model. The browser keeps the choice.
-  const [threeD, setThreeD] = useState(storedThreeD)
+  const [threeD, setThreeD] = useState(firstThreeD)
   const choose = (on: boolean) => {
     setThreeD(on)
     try {
@@ -132,7 +145,7 @@ export default function Helmet() {
           </div>
           {threeD ? (
             <Suspense fallback={<div className="hm-3d" />}>
-              <Helmet3D helmet={helmet} rising={rising} selected={selected} onSelect={toggle} onFail={() => choose(false)} />
+              <Helmet3D helmet={helmet} rising={rising} selected={selected} onSelect={toggle} onFail={() => setThreeD(false)} />
             </Suspense>
           ) : (
             <div className="hm-stills" role="group" aria-label={t('Space suit helmet with CO2 sensors, from the front and from the back')}>
