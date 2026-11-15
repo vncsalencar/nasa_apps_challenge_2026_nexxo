@@ -8,6 +8,10 @@
     "start": "node src/index.ts",
     "typecheck": "tsc --noEmit",
     "fetch-eda": "node scripts/fetch-eda.ts",
+    "fetch-eda-radiation": "node scripts/fetch-eda-radiation.ts",
+    "fetch-liulin": "node scripts/fetch-liulin.ts",
+    "fetch-trajectories": "node scripts/fetch-trajectories.ts",
+    "fetch-iss-track": "node scripts/fetch-iss-track.ts",
     "validate-model": "node scripts/validate-model.ts"
   },
   "dependencies": {
