@@ -95,9 +95,11 @@ The helmet is the helmet of the space suit that Neil Armstrong used on Apollo 11
 
 | File | Content |
 |---|---|
-| `web/public/models/armstrong.glb` | The model. |
+| `web/public/models/armstrong.bin` | The model, a glTF binary (.glb). The name ends with `.bin` because Cloudflare keeps a copy of `.bin` files by default, and not of `.glb` files. |
 | `web/public/models/helmet-front.webp`, `helmet-back.webp` | The two pictures of the 2D view. They are stills of the same model. |
 | `web/public/draco/` | The decoder of the 3D library for this model. |
+
+The server lets Cloudflare and the browser keep the files in `models/`, `draco/`, and `assets/` for 4 hours. So if you change the model or a picture, give the file a new name.
 
 In development, `window.__helmetShot(1100)` in the 3D view gives the two pictures and the sensor places again.
 

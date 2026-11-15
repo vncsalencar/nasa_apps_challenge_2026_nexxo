@@ -15,7 +15,9 @@ import { fmt, t } from '../i18n.ts'
 
 // The helmet in the file of the model: its middle and its radius in the units of the file,
 // the turn that points the visor to the viewer, and the height below which the page draws nothing.
-const MODEL = { file: '/models/armstrong.glb', center: new THREE.Vector3(0.015, 1.66, 0.07), radius: 0.182, turn: 0, cut: 1.475 }
+// The file is a glTF binary (.glb). Its name ends with .bin because Cloudflare keeps a copy of
+// .bin files by default, and not of .glb files. The loader reads the content, not the name.
+const MODEL = { file: '/models/armstrong.bin', center: new THREE.Vector3(0.015, 1.66, 0.07), radius: 0.182, turn: 0, cut: 1.475 }
 if (import.meta.env.DEV) {
   // For development only: the address can change these values, to find the helmet in a new model.
   const query = new URLSearchParams(location.search)
