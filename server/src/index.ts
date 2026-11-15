@@ -1,8 +1,9 @@
-// The server of the CO2 exposure panel. It runs the simulator (engine.ts), sends each change
-// to all open pages, and serves the built web app.
+// The server of Nexxo. It runs the simulator (engine.ts) for the CO2 page and the trip page,
+// sends each change to all open pages, and serves the built web app.
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import express, { type Response } from 'express'
+import { TRIP_SPEEDS } from '../../shared/trip/types.ts'
 import { HOLD_HOURS, PPM_LIMITS, SPEEDS, createEngine, type Message } from './engine.ts'
 import { loadRecord } from './record.ts'
 
@@ -21,13 +22,15 @@ const about = {
   speeds: SPEEDS,
   holdHours: HOLD_HOURS,
   ppmLimits: PPM_LIMITS,
+  // How many mission days the clock of the trip can move each second.
+  tripSpeeds: TRIP_SPEEDS,
 }
 
 // The open pages. Each one holds a connection that the server writes events to.
 const pages = new Set<Response>()
 const write = (page: Response, message: Message | { type: 'about'; about: typeof about }) => page.write(`data: ${JSON.stringify(message)}\n\n`)
-const tell = (message: Message) => {
-  for (const page of pages) write(page, message)
+const tell = (messages: Message[]) => {
+  for (const message of messages) for (const page of pages) write(page, message)
 }
 
 const app = express()
@@ -55,27 +58,28 @@ app.get('/api/state', (_request, response) => {
 
 app.post('/api/control', (request, response) => {
   const result = engine.control(request.body)
-  if ('error' in result) {
+  if (!Array.isArray(result)) {
     response.status(400).json(result)
     return
   }
   tell(result)
-  response.json({ state: result.state })
+  // The answer holds the settings of the two groups after the request.
+  response.json(engine.settings())
 })
 
 app.use('/api', (_request, response) => {
   response.status(404).json({ error: 'This address does not exist.' })
 })
 
-// The clock of the simulator.
+// The clocks of the simulator: the CO2 clock and the trip clock.
 const TICK_MS = 1000
 let lastTick = Date.now()
 setInterval(() => {
   const now = Date.now()
   // A long stop of the process must not make one very large step.
-  const message = engine.tick(Math.min((now - lastTick) / 1000, 5))
+  const messages = engine.tick(Math.min((now - lastTick) / 1000, 5))
   lastTick = now
-  if (message) tell(message)
+  tell(messages)
 }, TICK_MS)
 // A line with no data each 20 seconds keeps the connection open through a proxy.
 setInterval(() => {

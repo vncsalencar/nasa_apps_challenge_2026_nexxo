@@ -2,6 +2,9 @@
 // change through one open connection (server-sent events). This hook keeps the newest state.
 import { useCallback, useEffect, useState } from 'react'
 import { HISTORY_STEPS, type Cdra, type ModelParams } from '../../shared/co2.ts'
+import { defaultTrip } from '../../shared/trip/defaults.ts'
+import { DEFAULT_PRESET, PRESET_BY_ID } from '../../shared/trip/presets/index.ts'
+import type { TripState } from '../../shared/trip/types.ts'
 
 export type Mode = 'replay' | 'simulated'
 // The source of one value: the real record, the cabin model, or the hand of the presenter.
@@ -31,11 +34,16 @@ export type About = {
   speeds: number[]
   holdHours: number[]
   ppmLimits: { min: number; max: number }
+  // How many mission days the clock of the trip can move each second.
+  tripSpeeds: number[]
 }
 
 export type Live = {
   about: About
+  // The settings of the CO2 page.
   state: State
+  // The settings of the trip page. The CO2 settings and the trip settings do not change each other.
+  trip: TripState
   // The values of the last 7 days in ppm, one each 5 minutes. The last one is the newest.
   ppm: number[]
   // The source of each value.
@@ -44,11 +52,14 @@ export type Live = {
 
 type Message =
   | { type: 'about'; about: About }
-  | { type: 'full'; state: State; ppm: number[]; src: number[] }
+  // A server from before the trip page sends no "trip".
+  | { type: 'full'; state: State; trip?: TripState; ppm: number[]; src: number[] }
   | { type: 'tick'; state: State; ppm: number[]; src: number[] }
   | { type: 'last'; state: State; ppm: number; src: number }
   | { type: 'state'; state: State }
+  | { type: 'trip'; trip: TripState }
 
+// A change of settings. The trip fields go inside "trip", for example control({ trip: { day: 12.5 } }).
 export type Control = (change: Record<string, unknown>) => Promise<void>
 
 function apply(live: Partial<Live>, message: Message): Partial<Live> {
@@ -56,7 +67,9 @@ function apply(live: Partial<Live>, message: Message): Partial<Live> {
     case 'about':
       return { ...live, about: message.about }
     case 'full':
-      return { ...live, state: message.state, ppm: message.ppm, src: message.src }
+      // With a server from before the trip page, the trip keeps the first settings of the first
+      // preset, so the CO2 page still works with that server.
+      return { ...live, state: message.state, trip: message.trip ?? live.trip ?? defaultTrip(PRESET_BY_ID[DEFAULT_PRESET]), ppm: message.ppm, src: message.src }
     case 'tick':
       return {
         ...live,
@@ -73,6 +86,8 @@ function apply(live: Partial<Live>, message: Message): Partial<Live> {
       }
     case 'state':
       return { ...live, state: message.state }
+    case 'trip':
+      return { ...live, trip: message.trip }
   }
 }
 
@@ -97,6 +112,6 @@ export function useLive(): { live: Live | null; online: boolean; control: Contro
     if (!response.ok) throw new Error(((await response.json().catch(() => null)) as { error?: string } | null)?.error ?? `Error ${response.status}`)
   }, [])
 
-  const live = data.about && data.state && data.ppm && data.src && data.ppm.length > 0 ? (data as Live) : null
+  const live = data.about && data.state && data.trip && data.ppm && data.src && data.ppm.length > 0 ? (data as Live) : null
   return { live, online, control }
 }
