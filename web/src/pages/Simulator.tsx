@@ -1,13 +1,16 @@
 // The simulator page, for the presenter. It is made for a phone. Each control has an effect at
-// once on every open dashboard. No page links here: type /simulator in the address bar.
+// once on every open page. No page links here: type /simulator in the address bar.
+// The page has two tabs: the controls of the CO2 page, and the controls of the trip page.
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { BANDS, CDRA_STATES, CREW_LIMITS, DEFAULT_PARAMS, LIMIT_1H_MMHG, PARAM_LIMITS, mmHgToPpm, type Cdra, type ModelParams } from '../../../shared/co2.ts'
+import type { TripState } from '../../../shared/trip/types.ts'
 import { Icon } from '../components/Icon.tsx'
 import { Cite, ModeBadge, SourceLine, ThresholdTip } from '../components/parts.tsx'
 import { Tip } from '../components/Tip.tsx'
 import { fmt, t, tn } from '../i18n.ts'
-import { SOURCE, useLive, type Control, type Live } from '../live.ts'
+import { SOURCE, useLive, type About, type Control, type Live } from '../live.ts'
 import { CDRA_LABEL, PARAM_TEXT, WINDOW_LABEL } from '../texts.ts'
+import { TripControls, TripMission, TripNow } from '../trip/TripControls.tsx'
 import { formatDuration, formatTime, mmHgText, ppmText, viewOf, type View } from '../view.ts'
 import './simulator.css'
 
@@ -18,13 +21,49 @@ const QUICK = [...new Set([...BANDS.map((band) => band.from), LIMIT_1H_MMHG, 5.0
 const BUMPS = [-250, -50, 50, 250]
 const SEND_EACH_MS = 80
 
+// The two tabs. The page takes the tab from the address (/simulator?tab=trip), or remembers the last one.
+const TABS = ['co2', 'trip'] as const
+type Tab = (typeof TABS)[number]
+const TAB_KEY = 'nexxo-sim-tab'
+const isTab = (value: string | null): value is Tab => TABS.some((tab) => tab === value)
+
+function firstTab(): Tab {
+  const fromAddress = new URLSearchParams(window.location.search).get('tab')
+  if (isTab(fromAddress)) return fromAddress
+  try {
+    const stored = localStorage.getItem(TAB_KEY)
+    if (isTab(stored)) return stored
+  } catch {
+    // The browser blocks storage. Start with the first tab.
+  }
+  return 'co2'
+}
+
 type Parts = { live: Live; view: View; run: Control }
 
 export function Simulator() {
   const { live, online, control } = useLive()
   const [error, setError] = useState<string | null>(null)
+  const [tab, setTab] = useState<Tab>(firstTab)
   // The value of the CO2 slider while a finger moves it. The page shows it before the server answers.
   const [localPpm, setLocalPpm] = useState<number | null>(null)
+  // The same for the slider of the mission day.
+  const [localDay, setLocalDay] = useState<number | null>(null)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(TAB_KEY, tab)
+    } catch {
+      // The browser blocks storage, so the page cannot remember the tab.
+    }
+  }, [tab])
+  const choose = (next: Tab) => {
+    setTab(next)
+    // Keep the tab in the address, so a reload or a shared link opens the same tab.
+    const address = new URL(window.location.href)
+    address.searchParams.set('tab', next)
+    window.history.replaceState(window.history.state, '', address)
+  }
 
   if (!live) {
     return (
@@ -41,6 +80,10 @@ export function Simulator() {
   const view = viewOf(live, localPpm ?? undefined)
   const { mode, playing, timeMs } = live.state
   const parts = { live, view, run }
+  // The trip settings. A server from before the trip page sends no trip settings and no trip
+  // speeds. The page then shows no trip controls, because that server refuses each of them.
+  const tripSpeeds = (live.about as About & { tripSpeeds?: number[] }).tripSpeeds
+  const trip = tripSpeeds ? (live as Live & { trip?: TripState }).trip : undefined
 
   return (
     <div className="sm">
@@ -49,37 +92,78 @@ export function Simulator() {
           <span className="sm-name">
             <span className="brand">Nexxo</span> <span className="muted">{t('Simulator')}</span>
           </span>
-          <ModeBadge mode={localPpm === null ? mode : 'simulated'} mission={live.about.source.mission} />
+          {tab === 'co2' ? (
+            <ModeBadge mode={localPpm === null ? mode : 'simulated'} mission={live.about.source.mission} />
+          ) : (
+            trip && <TripMission trip={trip} />
+          )}
         </div>
-        <div className="sm-top-row">
-          <span className="sm-now">
-            <span className="display sm-now-digits">{fmt(view.now, 2)}</span> mmHg <span className="muted">· {ppmText(view.nowPpm)}</span>
-          </span>
-          <button type="button" className={playing ? 'sm-play' : 'sm-play btn-primary'} onClick={() => run({ playing: !playing })}>
-            <Icon name={playing ? 'pause' : 'play'} size={18} /> {playing ? t('Pause') : t('Play')}
-          </button>
-        </div>
-        <p className="sm-time">
-          {mode === 'replay' ? t('{time} UTC', { time: formatTime(timeMs) }) : t('Simulated time: {time} UTC', { time: formatTime(timeMs) })}
-          {!online && ` · ${t('no connection')}`}
-        </p>
+        {tab === 'co2' ? (
+          <>
+            <div className="sm-top-row">
+              <span className="sm-now">
+                <span className="display sm-now-digits">{fmt(view.now, 2)}</span> mmHg <span className="muted">· {ppmText(view.nowPpm)}</span>
+              </span>
+              <button type="button" className={playing ? 'sm-play' : 'sm-play btn-primary'} onClick={() => run({ playing: !playing })}>
+                <Icon name={playing ? 'pause' : 'play'} size={18} /> {playing ? t('Pause') : t('Play')}
+              </button>
+            </div>
+            <p className="sm-time">
+              {mode === 'replay' ? t('{time} UTC', { time: formatTime(timeMs) }) : t('Simulated time: {time} UTC', { time: formatTime(timeMs) })}
+              {!online && ` · ${t('no connection')}`}
+            </p>
+          </>
+        ) : trip ? (
+          <TripNow trip={trip} localDay={localDay} run={run} online={online} />
+        ) : (
+          <p className="sm-time">
+            {t('The server has no trip settings yet')}
+            {!online && ` · ${t('no connection')}`}
+          </p>
+        )}
         {error && <p role="alert" className="sm-error">{error}</p>}
       </header>
 
-      <main className="sm-main">
-        <ModeSection {...parts} />
-        <Co2Section {...parts} localPpm={localPpm} setLocalPpm={setLocalPpm} />
-        <StationSection {...parts} />
-        <ClockSection {...parts} />
-        <ReadoutSection {...parts} />
-        <SettingsSection {...parts} />
-        <section className="sm-section sm-reset">
-          <button type="button" onClick={() => run({ restart: true })}>
-            <Icon name="restart" size={18} /> {t('Start again from the first state')}
-          </button>
-          <span className="muted small">{t('Real data replay, 7 days into the record, 6 persons, CDRA on both beds, the default settings.')}</span>
-        </section>
-      </main>
+      <div className="sm-tabs" role="group" aria-label={t('The page that the simulator controls')}>
+        <button type="button" aria-pressed={tab === 'co2'} onClick={() => choose('co2')}>
+          {t('CO2 exposure')}
+        </button>
+        <button type="button" aria-pressed={tab === 'trip'} onClick={() => choose('trip')}>
+          {t('Trip')}
+        </button>
+      </div>
+
+      {tab === 'co2' ? (
+        <main className="sm-main">
+          <ModeSection {...parts} />
+          <Co2Section {...parts} localPpm={localPpm} setLocalPpm={setLocalPpm} />
+          <StationSection {...parts} />
+          <ClockSection {...parts} />
+          <ReadoutSection {...parts} />
+          <SettingsSection {...parts} />
+          <section className="sm-section sm-reset">
+            <button type="button" onClick={() => run({ restart: true })}>
+              <Icon name="restart" size={18} /> {t('Start again from the first state')}
+            </button>
+            <span className="muted small">{t('Real data replay, 7 days into the record, 6 persons, CDRA on both beds, the default settings.')}</span>
+          </section>
+        </main>
+      ) : trip ? (
+        <main className="sm-main">
+          <TripControls trip={trip} run={run} speeds={tripSpeeds} localDay={localDay} setLocalDay={setLocalDay} />
+        </main>
+      ) : (
+        <main className="sm-main">
+          <section className="sm-section">
+            <h2>{t('Trip')}</h2>
+            <p className="muted">{t('The server has no trip settings yet')}</p>
+            <p className="sm-hint">{t('The trip controls show here when the server sends the trip settings. Start the newest server, then load this page again.')}</p>
+            <a className="btn" href="/trip">
+              {t('Open the trip page')}
+            </a>
+          </section>
+        </main>
+      )}
     </div>
   )
 }

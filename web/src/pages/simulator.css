@@ -83,6 +83,52 @@
 .sm-reset { justify-items: start; }
 .sm-section .btn { justify-self: start; }
 
+/* The two tabs: the page that the simulator controls. They are below the sticky bar. */
+.sm-tabs { display: flex; gap: 4px; margin-top: 16px; padding: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill); }
+.sm-tabs button { flex: 1 1 0; min-width: 0; min-height: 48px; padding: 0 10px; border: 0; background: transparent; font-weight: 500; }
+.sm-tabs button[aria-pressed='true'] { background: var(--inverse-bg); color: var(--inverse-text); font-weight: 600; }
+.sm-tabs + .sm-main { padding-top: 16px; }
+.sm-mission { min-width: 0; max-width: 100%; font-size: 0.875rem; color: var(--text-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* The trip controls. */
+/* A long text of the speed list (for example in Portuguese) must not make a section wider than a small phone. */
+.sm-section { grid-template-columns: minmax(0, 1fr); }
+.sm-speed { min-width: 0; }
+.sm-speed select { min-width: 0; text-overflow: ellipsis; }
+/* The same for a row of choices: a long word goes on two lines. */
+.sm-cdra button { min-width: 0; white-space: normal; line-height: 1.2; }
+.sm-day-bumps > button { min-width: 0; padding: 0 6px; }
+.sm-sub { font-size: 1rem; margin-top: 6px; padding-top: 16px; border-top: 1px solid var(--border); }
+.sm-value { font-family: var(--font-display); font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.sm-range { font-size: 0.75rem; line-height: 1.5; }
+.sm-changed { color: var(--text); font-weight: 600; }
+.sm-row > .sm-tall { min-height: 56px; padding: 8px 16px; line-height: 1.3; }
+/* A grid of choices. The selected one is filled. A long text takes two lines. */
+.sm-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr)); gap: 8px; }
+.sm-options-wide { grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); }
+.sm-option { min-height: 52px; padding: 10px 16px; border-radius: var(--radius-sm); display: grid; gap: 2px; align-content: center; justify-content: start; justify-items: start; text-align: left; line-height: 1.3; font-size: 0.9375rem; overflow-wrap: anywhere; }
+.sm-option small { font-size: 0.75rem; color: var(--text-muted); }
+.sm-option[aria-pressed='true'] { background: var(--inverse-bg); border-color: var(--inverse-bg); color: var(--inverse-text); font-weight: 600; }
+.sm-option[aria-pressed='true'] small { color: inherit; opacity: 0.75; font-weight: 500; }
+/* A system that is on or off: the name on the left, the two choices on the right. */
+.sm-switch { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.sm-switch-name { font-size: 0.9375rem; }
+.sm-seg button { min-height: 44px; min-width: 68px; }
+/* A number that the presenter types, with its unit and its limits. */
+.sm-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 124px), 1fr)); gap: 12px; align-items: end; }
+.sm-field { display: grid; gap: 6px; min-width: 0; }
+.sm-field-input { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; }
+.sm-field-input input { flex: 1 1 0; width: 100%; min-height: 48px; }
+.sm-field-input .muted { white-space: nowrap; }
+.sm-storms { list-style: none; margin: 0; padding: 0; display: grid; }
+.sm-storms li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+/* A what-if scenario has the color of everything that is simulated. */
+.sm-whatif { padding: 10px 14px; border: 1px dashed color-mix(in srgb, var(--sim) 60%, transparent); border-radius: var(--radius-sm); color: var(--sim); font-size: 0.8125rem; line-height: 1.5; }
+.sm-steppers { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); align-items: end; }
+.sm-stepper-small { grid-template-columns: 52px 1fr 52px; gap: 8px; }
+.sm-stepper-small button { min-height: 48px; }
+.sm-stepper-small .sm-crew { font-size: 1.5rem; }
+
 /* A wide screen: two columns. */
 @media (min-width: 900px) {
   /* Two columns that fill from the top, so no card has an empty part. */

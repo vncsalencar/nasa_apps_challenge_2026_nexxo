@@ -1,5 +1,5 @@
 // Brazilian Portuguese. The key is the English text. A text with no line here shows in English.
-export const ptBR: Record<string, string> = {
+const base: Record<string, string> = {
   // The frame of the two pages.
   'CO2 exposure': 'Exposição ao CO2',
   Simulator: 'Simulador',
@@ -267,3 +267,8 @@ export const ptBR: Record<string, string> = {
   'Assumption, set from the RR-9 record. The station also has a second CDRA and the Russian Vozdukh system. With 0.5, the model holds 6 persons near 2.65 mmHg, as the record does.':
     'Suposição, ajustada pelo registro RR-9. A estação também tem um segundo CDRA e o sistema russo Vozdukh. Com 0,5, o modelo mantém 6 pessoas perto de 2,65 mmHg, como no registro.',
 }
+
+// The texts of the trip page are in one file for each part, in the folder pt-BR/.
+// Each file exports one or more maps from the English text to the Portuguese text.
+const parts = import.meta.glob('./pt-BR/*.ts', { eager: true }) as Record<string, Record<string, Record<string, string>>>
+export const ptBR: Record<string, string> = Object.assign({}, ...Object.values(parts).flatMap((part) => Object.values(part)), base)

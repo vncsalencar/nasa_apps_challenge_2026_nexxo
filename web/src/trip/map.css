@@ -1,0 +1,159 @@
+/* The map of a mission (TripMap.tsx) and the timeline of a mission (Timeline.tsx). */
+
+/* ------------------------------------------------------------------------------------ */
+/* The map. One unit of the SVG is one pixel, so each size below is in pixels.            */
+/* ------------------------------------------------------------------------------------ */
+.trip-map {
+  /* The colors of the bodies. --map-ground is the color behind the drawing: a mark and a label get a thin edge of it. */
+  --map-sun: #f3d489;
+  --map-earth: #6aa7e8;
+  --map-mars: #d27a55;
+  --map-moon: #bdb7ab;
+  --map-ground: var(--surface);
+  margin: 0;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.trip-map-ground { --map-ground: var(--bg); }
+/* The box of the map. A page can set --map-max-height. The drawing keeps its aspect ratio inside the box. */
+.map-stage { position: relative; width: 100%; max-height: var(--map-max-height, min(760px, 82dvh)); }
+.map-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* A line keeps its width when the drawing is scaled. */
+.map-line, .map-thin { vector-effect: non-scaling-stroke; }
+.map-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+/* The path that the spacecraft flew is solid. The path ahead is dashed. */
+.map-flown { stroke: var(--text); stroke-width: 3; }
+.map-ahead { stroke: var(--text-muted); stroke-width: 2; stroke-dasharray: 5 7; }
+/* A part of the path that our model made: the color of simulated values, and a hollow line. */
+.map-modelled.map-flown { stroke: var(--sim); stroke-width: 6; }
+.map-modelled.map-ahead { stroke: var(--sim); stroke-width: 5; stroke-dasharray: 6 9; }
+.map-core.map-modelled.map-flown { stroke: var(--map-ground); stroke-width: 2.5; }
+.map-core.map-modelled.map-ahead { stroke: var(--map-ground); stroke-width: 2; }
+/* The part of the ground track inside the South Atlantic Anomaly. */
+.map-saa.map-flown, .map-saa.map-ahead { stroke: var(--warning); }
+.map-saa.map-flown { stroke-width: 4; }
+
+/* The path of a body. */
+.map-orbit { stroke: var(--border-strong); stroke-width: 1.5; }
+.map-orbit-earth { stroke: color-mix(in srgb, var(--map-earth) 55%, var(--map-ground)); }
+.map-orbit-mars { stroke: color-mix(in srgb, var(--map-mars) 55%, var(--map-ground)); }
+.map-orbit-moon { stroke: color-mix(in srgb, var(--map-moon) 50%, var(--map-ground)); }
+.map-body { fill: var(--text-muted); stroke: var(--map-ground); stroke-width: 2; }
+.map-body-sun { fill: var(--map-sun); }
+.map-body-earth { fill: var(--map-earth); }
+.map-body-mars { fill: var(--map-mars); }
+.map-body-moon { fill: var(--map-moon); }
+/* The radio link between the Earth and the spacecraft. */
+.map-link { fill: none; stroke: var(--text-muted); stroke-width: 1; }
+
+/* The spacecraft: the brightest mark of the map, a dot with a ring. */
+.map-craft-dot { fill: var(--text); stroke: var(--map-ground); stroke-width: 2.5; }
+.map-craft-ring { fill: color-mix(in srgb, var(--text) 10%, transparent); stroke: var(--text); stroke-width: 1.5; }
+.map-craft-saa .map-craft-dot { fill: var(--warning); }
+.map-craft-saa .map-craft-ring { fill: color-mix(in srgb, var(--warning) 16%, transparent); stroke: var(--warning); }
+
+.map-tag { font-family: var(--font-body); font-weight: 500; fill: var(--text-soft); paint-order: stroke; stroke: var(--map-ground); stroke-width: 4px; stroke-linejoin: round; }
+.map-tag-craft { font-weight: 600; fill: var(--text); }
+.map-tag-link { fill: var(--text-soft); font-variant-numeric: tabular-nums; }
+.map-tag-saa { fill: var(--warning); }
+
+/* The ground map. */
+.map-sea { fill: var(--bg); }
+.map-land { fill: var(--border); stroke: var(--border-strong); stroke-width: 0.75; stroke-linejoin: round; }
+.map-grid { fill: none; stroke: var(--grid); stroke-width: 1; }
+.map-equator { stroke: var(--border); }
+.map-region { fill: color-mix(in srgb, var(--warning) 12%, transparent); stroke: var(--warning); stroke-width: 1.25; stroke-dasharray: 3 4; }
+
+/* The state with no data. */
+.map-empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; padding: 16px; text-align: center; pointer-events: none; }
+.map-empty p { max-width: 30ch; }
+.map-empty-title { font-family: var(--font-display); font-size: 1.25rem; letter-spacing: var(--display-spacing); color: var(--text-soft); }
+.map-empty-text { font-size: 0.875rem; color: var(--text-muted); }
+
+.map-caption { display: grid; gap: 10px; }
+.map-where { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; font-size: 1.0625rem; font-variant-numeric: tabular-nums; }
+.map-where-saa { color: var(--warning); }
+.map-where-model { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--sim); border: 1px dashed color-mix(in srgb, var(--sim) 55%, transparent); border-radius: var(--radius-pill); padding: 2px 10px; }
+.map-legend, .tl-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 0.8125rem; color: var(--text-soft); }
+.map-legend li, .tl-legend li { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.map-key { flex: none; width: 34px; height: 12px; overflow: visible; }
+.map-note { font-size: 0.8125rem; line-height: 1.55; color: var(--text-muted); }
+.map-note:empty { display: none; }
+
+/* ------------------------------------------------------------------------------------ */
+/* The timeline                                                                           */
+/* ------------------------------------------------------------------------------------ */
+.trip-timeline {
+  /* One calm color for each kind of phase. Two phases that follow each other have colors that a person with a color vision deficiency can tell apart. */
+  --phase-leo: #3788bb;
+  --phase-departure: #908936;
+  --phase-belts: #c673a3;
+  --phase-cruise: #5a60ad;
+  --phase-orbit: #008e88;
+  --phase-surface: #ab5637;
+  --phase-return: #9c85cc;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.tl-kind-leo { --phase: var(--phase-leo); }
+.tl-kind-departure { --phase: var(--phase-departure); }
+.tl-kind-belts { --phase: var(--phase-belts); }
+.tl-kind-cruise { --phase: var(--phase-cruise); }
+.tl-kind-orbit { --phase: var(--phase-orbit); }
+.tl-kind-surface { --phase: var(--phase-surface); }
+.tl-kind-return { --phase: var(--phase-return); }
+
+.tl-track { display: grid; gap: 10px; border-radius: 10px; }
+.tl-track:focus-visible { outline-offset: 8px; }
+/* A person can drag the cursor. The page does not scroll and no text gets selected during the drag. */
+.tl-live { cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.tl-dragging { cursor: grabbing; }
+
+/* The label of the cursor. It follows the cursor and stays inside the bar: at the left end its left side is at the cursor, at the right end its right side is. */
+.tl-now { position: relative; width: max-content; max-width: 100%; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 12px; font-size: clamp(1.0625rem, 0.9rem + 0.7vw, 1.375rem); line-height: 1.25; transition: left 0.2s linear, transform 0.2s linear; }
+.tl-now strong { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-spacing); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tl-now span { font-size: 0.8em; color: var(--text-soft); }
+
+/* The lane: the shapes of the marks (14px), the bar (16px), and the labels of the phases below the bar. */
+.tl-lane { position: relative; height: 54px; }
+.tl-seg { position: absolute; top: 14px; height: 40px; min-width: 5px; }
+.tl-seg-text { position: absolute; left: 1px; top: 21px; white-space: nowrap; font-size: 0.8125rem; line-height: 19px; color: var(--text-muted); }
+.tl-seg-days { margin-left: 8px; font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+.tl-seg-on .tl-seg-text { color: var(--text); }
+/* A gap of 2px in the color of the card keeps two segments apart. */
+.tl-seg-bar { position: absolute; left: 0; right: 2px; top: 0; height: 16px; border-radius: 4px; background: var(--phase, var(--border-strong)); }
+.tl-seg:last-of-type .tl-seg-bar { right: 0; }
+/* The part of the mission after the cursor is less bright. */
+.tl-rest { position: absolute; right: 0; top: 14px; height: 16px; background: color-mix(in srgb, var(--surface) 55%, transparent); transition: left 0.2s linear; }
+
+/* A mark: a shape above the bar and a line over the bar. */
+.tl-mark { position: absolute; top: 0; width: 0; height: 14px; display: flex; justify-content: center; font-size: 11px; line-height: 12px; }
+.tl-mark::before { content: ''; position: absolute; left: -1px; top: 12px; width: 2px; height: 20px; border-radius: 1px; background: currentColor; }
+.tl-storm { color: var(--warning); }
+.tl-limit { color: var(--critical); }
+.tl-glyph { font-size: 11px; }
+
+.tl-cursor { position: absolute; top: -8px; height: 38px; width: 0; transition: left 0.2s linear; }
+.tl-cursor::before { content: ''; position: absolute; left: -1px; top: 0; bottom: 0; width: 2px; border-radius: 1px; background: var(--text); }
+.tl-thumb { position: absolute; left: -8px; bottom: -6px; width: 16px; height: 28px; border-radius: 8px; background: var(--text); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--border-strong); }
+.tl-dragging .tl-now, .tl-dragging .tl-cursor, .tl-dragging .tl-rest { transition: none; }
+
+.tl-axis { position: relative; height: 18px; font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.tl-axis span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.tl-axis span:first-child { transform: none; }
+.tl-axis span:last-child { transform: translateX(-100%); }
+
+.tl-legend { margin-top: 10px; }
+.tl-chip { flex: none; width: 12px; height: 12px; border-radius: 3px; background: var(--phase, var(--border-strong)); }
+.tl-legend-days { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.tl-legend-on { color: var(--text); font-weight: 600; }
+.tl-empty { font-size: 0.875rem; color: var(--text-muted); }
+
+/* A narrow screen: the label of the cursor does not follow the cursor. A long phase name then
+   fills the whole line, and a label that moves would leave the page. */
+@media (max-width: 599px) {
+  .tl-now { left: 0 !important; transform: none !important; width: auto; }
+}
