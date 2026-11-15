@@ -331,12 +331,11 @@ export default function Helmet3D({ helmet, rising, selected, onSelect, onFail }:
         const labelX = Math.max(26, Math.min(width - 26, x + sideX * LABEL_OUT))
         const labelY = Math.max(16, Math.min(height - 16, y + sideY * LABEL_OUT))
         label.style.transform = `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`
-        label.style.opacity = behind ? '0.3' : '1'
         line.setAttribute('x1', String(x))
         line.setAttribute('y1', String(y))
         line.setAttribute('x2', String(labelX))
         line.setAttribute('y2', String(labelY))
-        line.style.opacity = behind ? '0.15' : '0.7'
+        line.style.opacity = behind ? '0.35' : '0.8'
       }
       renderer.render(scene, camera)
     }

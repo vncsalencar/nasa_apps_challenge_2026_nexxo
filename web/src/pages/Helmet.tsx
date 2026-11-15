@@ -9,8 +9,10 @@
 // pictures come from the model, so both views show a sensor at the same place of the helmet.
 // The sensors and their values are a simulation. No real suit data is behind them.
 import { Suspense, lazy, useState, type CSSProperties } from 'react'
-import { LEVELS, SENSORS, levelOf, risingSensors, type HelmetState, type Level } from '../../../shared/helmet.ts'
+import { LEVELS, SENSORS, levelOf, risingSensors, sensorsAt, type HelmetState, type Level } from '../../../shared/helmet.ts'
+import { LangSwitch } from '../components/LangSwitch.tsx'
 import { fmt, t } from '../i18n.ts'
+import { NoticeOverlay } from '../helmet/NoticeOverlay.tsx'
 import { helmetAlert, useHelmet } from '../helmet/useHelmet.ts'
 import './dashboard.css'
 import './helmet.css'
@@ -32,7 +34,7 @@ const LEVEL_WORD: Record<Level, string> = { normal: t('normal'), caution: t('rai
 const LEVEL_STEP: Record<Level, string> = {
   normal: t('No action is necessary.'),
   caution: t('Check the air flow of the suit. Move the head away from this place of the helmet.'),
-  alert: t('Raise the air flow of the suit now, lower the work load, and tell the crew. If the value stays high, end the work outside.'),
+  alert: t('Risk of headache and of loss of focus. Start the micro air jet.'),
 }
 // To which side of its light the label of each sensor goes in a picture: 1 is right, -1 is left.
 const LABEL_SIDE: Record<string, number> = { forehead: 1, mouth: -1, neck: 1, back: 1 }
@@ -79,7 +81,7 @@ function Still({ view, title, helmet, rising, selected, onSelect }: StillProps) 
 }
 
 export default function Helmet() {
-  const { helmet, online } = useHelmet()
+  const { helmet, online, send } = useHelmet()
   const [selected, setSelected] = useState<string | null>(null)
   // The pictures or the 3D model. The browser keeps the choice.
   const [threeD, setThreeD] = useState(storedThreeD)
@@ -116,9 +118,11 @@ export default function Helmet() {
             <span aria-hidden="true">▲</span> {t('Simulated')}
           </span>
           {!online && <span className="xp-clock">{t('no connection')}</span>}
+          <LangSwitch short />
         </div>
       </header>
 
+      <NoticeOverlay helmet={helmet} onSeen={() => void send({ seen: true }).catch(() => undefined)} onJet={() => void send({ jet: true, seen: true }).catch(() => undefined)} />
       <main className="hm-main">
         {/* The helmet. On a wide screen it is at the left, and the information is at the right. */}
         <section className="hm-model" aria-label={t('Helmet')}>
@@ -156,6 +160,13 @@ export default function Helmet() {
             <span aria-hidden="true">{SHAPE[alert.level]}</span> {alert.text}
           </p>
 
+          {sensorsAt(helmet, 'alert').length > 0 && !(helmet.jet && !helmet.jet.done) && (
+            <button type="button" className="btn-primary hm-jet" onClick={() => void send({ jet: true }).catch(() => undefined)}>
+              {t('Start the micro air jet')}
+              <span>{t('Lowers the CO2 at the red sensors')}</span>
+            </button>
+          )}
+
           <ul className="hm-list">
             {SENSORS.map((sensor) => {
               const value = helmet.sensors[sensor.id].value
@@ -173,7 +184,7 @@ export default function Helmet() {
                       </span>
                     </span>
                     <span className="hm-row-where">
-                      {sensor.zone === 'front' ? t('Front of the helmet') : t('Back of the helmet')} · {t(sensor.where)}
+                      {sensor.zone === 'front' ? t('Front zone') : t('Back zone')} · {t(sensor.where)}
                     </span>
                     {(on || level !== 'normal') && <span className="hm-row-step">{LEVEL_STEP[level]}</span>}
                   </button>
@@ -187,6 +198,7 @@ export default function Helmet() {
             <span className="hm-key hm-text-caution">▲ {t('{from} to {to} mmHg', { from: fmt(LEVELS.caution, 1), to: fmt(LEVELS.alert, 1) })}</span>
             <span className="hm-key hm-text-alert">■ {t('above {value} mmHg', { value: fmt(LEVELS.alert, 1) })}</span>
           </p>
+          <p className="hm-ref">{t('Clinical reference: NASA-STD-3001, OCHMO-TB-004 (limits for a cabin)')}</p>
         </section>
       </main>
     </div>

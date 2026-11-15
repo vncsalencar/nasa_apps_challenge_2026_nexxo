@@ -1,7 +1,7 @@
 // Tests of the helmet sensors. Run: npm test
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { CALM_MMHG, ROUTINES, SENSOR_IDS, calmHelmet, clearHelmet, endNotice, levelOf, risingSensors, sendNotice, sensorsAt, setSensor, startRoutine, stepHelmet } from './helmet.ts'
+import { CALM_MMHG, JET, ROUTINES, SENSOR_IDS, calmHelmet, clearHelmet, endNotice, levelOf, seeNotice, risingSensors, sendNotice, sensorsAt, setSensor, startJet, startRoutine, stepHelmet } from './helmet.ts'
 
 describe('helmet sensors', () => {
   it('gives each sensor a color by its value', () => {
@@ -54,8 +54,41 @@ describe('helmet sensors', () => {
     const calm = calmHelmet()
     assert.equal(sendNotice(calm, 'info'), calm)
     const red = setSensor(setSensor(calm, 'mouth', 4), 'neck', 2.6)
-    assert.deepEqual(sendNotice(red, 'jet').notice, { kind: 'jet', sensors: ['mouth'] })
+    assert.deepEqual(sendNotice(red, 'jet').notice, { kind: 'jet', sensors: ['mouth'], full: false })
     assert.equal(endNotice(sendNotice(red, 'info')).notice, null)
+  })
+
+  it('shows the alert on the full screen until the crew member answers it', () => {
+    const red = setSensor(calmHelmet(), 'mouth', 4)
+    const sent = sendNotice(red, 'info', true)
+    assert.equal(sent.notice?.full, true)
+    // The answer closes the full screen form. The alert stays in the page.
+    assert.deepEqual(seeNotice(sent).notice, { kind: 'info', sensors: ['mouth'], full: false })
+    assert.equal(seeNotice(red), red)
+  })
+
+  it('lowers the red sensors with the micro air jet in the jet time', () => {
+    const calm = calmHelmet()
+    assert.equal(startJet(calm), calm)
+    let state = startJet(setSensor(setSensor(calm, 'back', 4.5), 'mouth', 2.6))
+    assert.deepEqual(state.jet, { sensors: ['back'], done: false })
+    // Only the red sensor moves, and it is at the middle after half of the time.
+    state = stepHelmet(state, JET.seconds / 2)
+    assert.equal(state.sensors.back.value, 2.95)
+    assert.equal(state.sensors.mouth.value, 2.6)
+    assert.equal(state.jet?.done, false)
+    state = stepHelmet(state, JET.seconds / 2)
+    assert.deepEqual(state.sensors.back, { value: JET.target, target: JET.target })
+    assert.equal(state.jet?.done, true)
+    // A new value from the simulator ends the state of the jet.
+    assert.equal(setSensor(state, 'neck', 2).jet, null)
+  })
+
+  it('ends the alert when the micro air jet lowers the values', () => {
+    let state = startJet(sendNotice(setSensor(calmHelmet(), 'back', 4.5), 'jet', true))
+    assert.equal(state.notice?.kind, 'jet')
+    state = stepHelmet(state, JET.seconds)
+    assert.equal(state.notice, null)
   })
 
   it('ends the alert when no sensor is above the red limit', () => {

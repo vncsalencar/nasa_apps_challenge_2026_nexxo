@@ -301,7 +301,15 @@ The simulator page (`/simulator`) controls it:
 | Information only | The sensors that passed the limit, and that a manual action can be necessary. |
 | Advice of a micro air jet | The sensors that passed the limit, and the advice to start a micro air jet at these places to lower the CO2. |
 
-The presenter can remove the alert. The alert also ends by itself when no sensor is above the limit. **Assumption:** the micro air jet is an idea of this app: a jet with a small flow, because it is inside the helmet, near the face. No real suit function is behind it, and the page does not model its effect.
+The presenter also selects how the helmet page shows the alert: in the page, above the status line, or on the full screen. The full screen alert covers the page with one color, the values of the sensors, and the answer "I saw it". The answer closes the full screen form, and the alert then stays in the page. The presenter can also close the full screen form from the simulator page.
+
+The presenter can remove the alert. The alert also ends by itself when no sensor is above the limit.
+
+**The micro air jet as an action.** While a sensor is red, the helmet page has a button "Start the micro air jet". The full screen alert with the advice of a jet has the same button, and so has the simulator page. The jet lowers each red sensor to 1.4 mmHg in 3 seconds. The status line then says that the jet is on, and after it that the flow is stable and all sensors are below the NASA limit of 3.0 mmHg. **Assumption:** the micro air jet is an idea of this app: a jet with a small flow, because it is inside the helmet, near the face. No real suit function is behind it. The target of 1.4 mmHg and the time of 3 seconds are our choice for the demonstration, not a model of a real jet.
+
+**Scenarios.** The simulator page has three ready scenarios for a demonstration or a video: "All normal", "CO2 pocket at the mouth", and "Critical alert behind the head" (4.5 mmHg).
+
+**What a red sensor tells.** The row of a red sensor says "Risk of headache and of loss of focus". The sources are the symptom bands of the CO2 page: headaches from 2.8 mmHg (OCHMO-TB-004) and slower thinking from 2.7 mmHg (Law and Alexander, NTRS 20150019624). The page shows a short reference line below the color key: NASA-STD-3001 and OCHMO-TB-004, limits for a cabin.
 
 The helmet is the helmet of the space suit that Neil Armstrong used on Apollo 11. The model is the 3D scan of the Smithsonian Institution, National Air and Space Museum (https://3d.si.edu/object/3d/armstrong-space-suit:d8c63ba6-4ebc-11ea-b77f-2e728ce88125). The page draws the scan as it is and cuts it below the helmet. The model is in `web/public/models/armstrong.glb`, the two pictures are stills of the same model, and the files in `web/public/draco/` are the decoder of the 3D library for this model. In development, `window.__helmetShot(1100)` in the 3D view gives the two pictures and the sensor places again.
 

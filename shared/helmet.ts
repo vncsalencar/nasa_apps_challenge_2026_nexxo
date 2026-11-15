@@ -16,10 +16,10 @@ export type Zone = 'front' | 'back'
 // web/src/helmet/Helmet3D.tsx), so a sensor is at the same place of the helmet in both views.
 export type Sensor = { id: string; label: string; where: string; zone: Zone; dir: [number, number, number]; front: [number, number] | null; back: [number, number] | null }
 export const SENSORS: Sensor[] = [
-  { id: 'forehead', label: 'Forehead', where: 'At the front of the helmet, near the forehead.', zone: 'front', dir: [0, 0.62, 0.76], front: [50, 28.26], back: null },
-  { id: 'mouth', label: 'Mouth', where: 'At the front of the helmet, a little in front of the mouth.', zone: 'front', dir: [0, -0.3, 0.94], front: [50, 57.12], back: null },
-  { id: 'neck', label: 'Neck', where: 'At the front of the helmet, below the mouth, near the neck ring.', zone: 'front', dir: [0, -0.88, 0.45], front: [50, 73.4], back: null },
-  { id: 'back', label: 'Back of the head', where: 'At the back of the helmet, behind the head.', zone: 'back', dir: [0, 0.1, -1], front: null, back: [50, 44.41] },
+  { id: 'forehead', label: 'Forehead', where: 'near the forehead', zone: 'front', dir: [0, 0.62, 0.76], front: [50, 28.26], back: null },
+  { id: 'mouth', label: 'Mouth', where: 'in front of the mouth', zone: 'front', dir: [0, -0.3, 0.94], front: [50, 57.12], back: null },
+  { id: 'neck', label: 'Neck', where: 'below the mouth, near the neck ring', zone: 'front', dir: [0, -0.88, 0.45], front: [50, 73.4], back: null },
+  { id: 'back', label: 'Back of the head', where: 'behind the head', zone: 'back', dir: [0, 0.1, -1], front: null, back: [50, 44.41] },
 ]
 export const SENSOR_IDS = SENSORS.map((sensor) => sensor.id)
 
@@ -58,9 +58,17 @@ export const ROUTINES: Routine[] = [
 export const NOTICE_KINDS = ['info', 'jet'] as const
 export type NoticeKind = (typeof NOTICE_KINDS)[number]
 // sensors: the sensors that were above the red limit when the presenter sent the alert.
-export type Notice = { kind: NoticeKind; sensors: string[] }
+// full: the helmet page shows the alert on the full screen, until the crew member answers it.
+export type Notice = { kind: NoticeKind; sensors: string[]; full: boolean }
 
-export type SensorState = { value: number; target: number }
+// The micro air jet as an action: the values of the sensors above the red limit go down to
+// this value in this time. Both numbers are our choice, for the demonstration.
+export const JET = { target: 1.4, seconds: 3 }
+// sensors: the sensors that the jet lowers. done: their values reached the target.
+export type Jet = { sensors: string[]; done: boolean }
+
+// rate: the speed of this sensor while the micro air jet lowers it. Without it, the speed of the state applies.
+export type SensorState = { value: number; target: number; rate?: number }
 export type HelmetState = {
   sensors: Record<string, SensorState>
   // The routine that runs, or null.
@@ -68,10 +76,12 @@ export type HelmetState = {
   rate: number
   // The alert that the presenter sent, or null.
   notice: Notice | null
+  // The micro air jet that runs or that ended, or null.
+  jet: Jet | null
 }
 
 export function calmHelmet(rate = DEFAULT_RATE): HelmetState {
-  return { sensors: Object.fromEntries(SENSOR_IDS.map((id) => [id, { value: CALM_MMHG, target: CALM_MMHG }])), routine: null, rate, notice: null }
+  return { sensors: Object.fromEntries(SENSOR_IDS.map((id) => [id, { value: CALM_MMHG, target: CALM_MMHG }])), routine: null, rate, notice: null, jet: null }
 }
 
 const clamp = (value: number) => Math.min(VALUE_LIMITS.max, Math.max(VALUE_LIMITS.min, value))
@@ -83,24 +93,23 @@ export function startRoutine(state: HelmetState, id: string): HelmetState {
   if (!routine) return state
   const sensors = { ...state.sensors }
   for (const sensor of routine.sensors) sensors[sensor] = { ...sensors[sensor], target: routine.target }
-  return { ...state, sensors, routine: id }
+  return { ...state, sensors, routine: id, jet: null }
 }
 
 // All sensors go back to the calm value, step by step.
 export function clearHelmet(state: HelmetState): HelmetState {
-  return { ...state, routine: null, sensors: Object.fromEntries(Object.entries(state.sensors).map(([id, sensor]) => [id, { ...sensor, target: CALM_MMHG }])) }
+  return { ...state, routine: null, jet: null, sensors: Object.fromEntries(Object.entries(state.sensors).map(([id, sensor]) => [id, { value: sensor.value, target: CALM_MMHG }])) }
 }
 
 // Sets one sensor to a value at once. The value stays, because the target is the same value.
 export function setSensor(state: HelmetState, id: string, mmHg: number): HelmetState {
   if (!(id in state.sensors)) return state
   const value = round(clamp(mmHg))
-  return endOldNotice({ ...state, sensors: { ...state.sensors, [id]: { value, target: value } } })
+  return endOldNotice({ ...state, jet: null, sensors: { ...state.sensors, [id]: { value, target: value } } })
 }
 
 // Moves each value toward its target for some seconds. Returns the same object if nothing moved.
 export function stepHelmet(state: HelmetState, seconds: number): HelmetState {
-  const most = state.rate * seconds
   let moved = false
   const sensors: Record<string, SensorState> = {}
   for (const [id, sensor] of Object.entries(state.sensors)) {
@@ -110,16 +119,34 @@ export function stepHelmet(state: HelmetState, seconds: number): HelmetState {
       continue
     }
     moved = true
-    sensors[id] = { ...sensor, value: Math.abs(gap) <= most ? sensor.target : round(sensor.value + Math.sign(gap) * most) }
+    const most = (sensor.rate ?? state.rate) * seconds
+    // At the target, the sensor has the speed of the state again.
+    sensors[id] = Math.abs(gap) <= most ? { value: sensor.target, target: sensor.target } : { ...sensor, value: round(sensor.value + Math.sign(gap) * most) }
   }
-  return moved ? endOldNotice({ ...state, sensors }) : state
+  if (!moved) return state
+  const jet = state.jet && !state.jet.done && state.jet.sensors.every((id) => sensors[id].value === sensors[id].target) ? { ...state.jet, done: true } : state.jet
+  return endOldNotice({ ...state, sensors, jet })
+}
+
+// Starts the micro air jet: each sensor above the red limit goes down to the jet target in the jet time.
+// With no sensor above the red limit, the state stays the same.
+export function startJet(state: HelmetState): HelmetState {
+  const red = sensorsAt(state, 'alert')
+  if (!red.length) return state
+  const sensors = { ...state.sensors }
+  for (const id of red) sensors[id] = { value: sensors[id].value, target: JET.target, rate: (sensors[id].value - JET.target) / JET.seconds }
+  return { ...state, sensors, routine: null, jet: { sensors: red, done: false } }
 }
 
 // Sends an alert of one kind for the sensors that are above the red limit now.
 // With no sensor above the red limit, there is nothing to tell, so the state stays the same.
-export function sendNotice(state: HelmetState, kind: NoticeKind): HelmetState {
+export function sendNotice(state: HelmetState, kind: NoticeKind, full = false): HelmetState {
   const sensors = sensorsAt(state, 'alert')
-  return sensors.length ? { ...state, notice: { kind, sensors } } : state
+  return sensors.length ? { ...state, notice: { kind, sensors, full } } : state
+}
+// The crew member answered the full screen alert. The alert stays in the page, in its small form.
+export function seeNotice(state: HelmetState): HelmetState {
+  return state.notice?.full ? { ...state, notice: { ...state.notice, full: false } } : state
 }
 export function endNotice(state: HelmetState): HelmetState {
   return state.notice ? { ...state, notice: null } : state

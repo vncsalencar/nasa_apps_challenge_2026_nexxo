@@ -1,7 +1,7 @@
 // The helmet sensors on the server: one state for all screens, its own stream, and its own
 // control route. It is apart from the simulator engine of the other two pages.
 import type { Express, Response } from 'express'
-import { NOTICE_KINDS, RATES, ROUTINES, SENSOR_IDS, VALUE_LIMITS, calmHelmet, clearHelmet, endNotice, sendNotice, setSensor, startRoutine, stepHelmet, type HelmetState, type NoticeKind } from '../../shared/helmet.ts'
+import { NOTICE_KINDS, RATES, ROUTINES, SENSOR_IDS, VALUE_LIMITS, calmHelmet, clearHelmet, endNotice, seeNotice, sendNotice, setSensor, startJet, startRoutine, stepHelmet, type HelmetState, type NoticeKind } from '../../shared/helmet.ts'
 
 const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
 
@@ -27,17 +27,26 @@ export function changeHelmet(state: HelmetState, body: unknown): HelmetState | {
     }
     next = setSensor(next, set.id as string, set.mmHg)
   }
+  // jet: true starts the micro air jet at the sensors above the red limit.
+  if (input.jet === true) {
+    const started = startJet(next)
+    if (started === next) return { error: 'No sensor is above the red limit, so the micro air jet has nothing to lower.' }
+    next = started
+  }
   // notice: a kind sends an alert to the helmet page, and null removes the alert.
+  // full: true shows this alert on the full screen. seen: true closes the full screen form.
   if ('notice' in input) {
     if (input.notice === null) {
       next = endNotice(next)
     } else {
       if (!NOTICE_KINDS.includes(input.notice as NoticeKind)) return { error: `notice must be null or one of ${NOTICE_KINDS.join(', ')}.` }
-      const sent = sendNotice(next, input.notice as NoticeKind)
+      if ('full' in input && typeof input.full !== 'boolean') return { error: 'full must be true or false.' }
+      const sent = sendNotice(next, input.notice as NoticeKind, input.full === true)
       if (sent === next) return { error: 'No sensor is above the red limit, so there is no alert to send.' }
       next = sent
     }
   }
+  if (input.seen === true) next = seeNotice(next)
   return next
 }
 
@@ -69,8 +78,8 @@ export function addHelmet(app: Express) {
     response.json(state)
   })
 
-  // The values move to their targets two times each second, so a rise looks smooth.
-  const TICK_MS = 500
+  // The values move to their targets four times each second, so a change looks smooth.
+  const TICK_MS = 250
   setInterval(() => {
     const next = stepHelmet(state, TICK_MS / 1000)
     if (next !== state) {

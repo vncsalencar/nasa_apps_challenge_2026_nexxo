@@ -1,8 +1,8 @@
 // The live state of the helmet sensors. The server keeps one state for all screens and sends
 // each change through its own stream.
 import { useCallback, useEffect, useState } from 'react'
-import { SENSORS, levelOf, risingSensors, sensorsAt, type HelmetState, type Level } from '../../../shared/helmet.ts'
-import { t } from '../i18n.ts'
+import { LEVELS, SENSORS, levelOf, risingSensors, sensorsAt, type HelmetState, type Level } from '../../../shared/helmet.ts'
+import { fmt, t } from '../i18n.ts'
 
 export type SendHelmet = (change: Record<string, unknown>) => Promise<void>
 
@@ -36,6 +36,8 @@ export function helmetAlert(helmet: HelmetState): { level: Level; text: string }
     const worst = rising.some((id) => levelOf(helmet.sensors[id].value) !== 'normal') ? level : 'caution'
     return { level: worst === 'normal' ? 'caution' : worst, text: t('CO2 levels are rising at these sensors: {names}.', { names: names(rising) }) }
   }
+  if (helmet.jet && !helmet.jet.done) return { level: level === 'normal' ? 'caution' : level, text: t('The micro air jet is on. CO2 goes down at these sensors: {names}.', { names: names(helmet.jet.sensors) }) }
+  if (helmet.jet?.done && level === 'normal') return { level, text: t('Flow stable. All sensors are below the NASA limit of {value} mmHg (NASA-STD-3001).', { value: fmt(LEVELS.alert, 1) }) }
   if (alert.length) return { level, text: t('CO2 is high at these sensors: {names}.', { names: names(alert) }) }
   if (caution.length) return { level, text: t('CO2 is above the first level at these sensors: {names}.', { names: names(caution) }) }
   return { level, text: t('All sensors are in the normal range.') }
