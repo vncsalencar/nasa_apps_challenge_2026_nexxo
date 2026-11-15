@@ -150,7 +150,7 @@ function NoticeSection({ helmet, run }: { helmet: HelmetState; run: SendHelmet }
           {fullOpen ? t('The helmet page shows the alert on the full screen now.') : t('The helmet page shows the alert in the page now.')}
         </p>
       )}
-      <p className="sm-hint">{t('The alert ends by itself when no sensor is above the limit.')} {t('The micro air jet lowers the red sensors to {value} mmHg in {seconds} seconds. The helmet page has the same button.', { value: fmt(JET.target, 1), seconds: JET.seconds })}</p>
+      <p className="sm-hint">{t('The alert ends by itself when no sensor is above the limit.')} {t('The micro air jet lowers the red sensors to {value} mmHg in {seconds} seconds. Only this page can start it.', { value: fmt(JET.target, 1), seconds: JET.seconds })}</p>
     </section>
   )
 }

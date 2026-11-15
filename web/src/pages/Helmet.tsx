@@ -9,7 +9,7 @@
 // pictures come from the model, so both views show a sensor at the same place of the helmet.
 // The sensors and their values are a simulation. No real suit data is behind them.
 import { Suspense, lazy, useState, type CSSProperties } from 'react'
-import { LEVELS, SENSORS, levelOf, risingSensors, sensorsAt, type HelmetState, type Level } from '../../../shared/helmet.ts'
+import { LEVELS, SENSORS, levelOf, risingSensors, type HelmetState, type Level } from '../../../shared/helmet.ts'
 import { LangSwitch } from '../components/LangSwitch.tsx'
 import { fmt, t } from '../i18n.ts'
 import { NoticeOverlay } from '../helmet/NoticeOverlay.tsx'
@@ -81,7 +81,7 @@ function Still({ view, title, helmet, rising, selected, onSelect }: StillProps) 
 }
 
 export default function Helmet() {
-  const { helmet, online, send } = useHelmet()
+  const { helmet, online } = useHelmet()
   const [selected, setSelected] = useState<string | null>(null)
   // The pictures or the 3D model. The browser keeps the choice.
   const [threeD, setThreeD] = useState(storedThreeD)
@@ -122,7 +122,7 @@ export default function Helmet() {
         </div>
       </header>
 
-      <NoticeOverlay helmet={helmet} onSeen={() => void send({ seen: true }).catch(() => undefined)} onJet={() => void send({ jet: true, seen: true }).catch(() => undefined)} />
+      <NoticeOverlay helmet={helmet} />
       <main className="hm-main">
         {/* The helmet. On a wide screen it is at the left, and the information is at the right. */}
         <section className="hm-model" aria-label={t('Helmet')}>
@@ -159,13 +159,6 @@ export default function Helmet() {
           <p className={`hm-banner hm-banner-${alert.level}`} role="status" aria-live="polite">
             <span aria-hidden="true">{SHAPE[alert.level]}</span> {alert.text}
           </p>
-
-          {sensorsAt(helmet, 'alert').length > 0 && !(helmet.jet && !helmet.jet.done) && (
-            <button type="button" className="btn-primary hm-jet" onClick={() => void send({ jet: true }).catch(() => undefined)}>
-              {t('Start the micro air jet')}
-              <span>{t('Lowers the CO2 at the red sensors')}</span>
-            </button>
-          )}
 
           <ul className="hm-list">
             {SENSORS.map((sensor) => {

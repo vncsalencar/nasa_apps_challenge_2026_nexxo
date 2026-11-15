@@ -58,8 +58,11 @@ export const ROUTINES: Routine[] = [
 export const NOTICE_KINDS = ['info', 'jet'] as const
 export type NoticeKind = (typeof NOTICE_KINDS)[number]
 // sensors: the sensors that were above the red limit when the presenter sent the alert.
-// full: the helmet page shows the alert on the full screen, until the crew member answers it.
-export type Notice = { kind: NoticeKind; sensors: string[]; full: boolean }
+// full: the helmet pages show the alert on the full screen. Each person closes it on their own
+// screen with an answer. The presenter closes it on all screens.
+// id: a number that is new for each alert that the presenter sends, so a page knows which
+// alert its person answered.
+export type Notice = { kind: NoticeKind; sensors: string[]; full: boolean; id: number }
 
 // The micro air jet as an action: the values of the sensors above the red limit go down to
 // this value in this time. Both numbers are our choice, for the demonstration.
@@ -140,11 +143,11 @@ export function startJet(state: HelmetState): HelmetState {
 
 // Sends an alert of one kind for the sensors that are above the red limit now.
 // With no sensor above the red limit, there is nothing to tell, so the state stays the same.
-export function sendNotice(state: HelmetState, kind: NoticeKind, full = false): HelmetState {
+export function sendNotice(state: HelmetState, kind: NoticeKind, full = false, id = 0): HelmetState {
   const sensors = sensorsAt(state, 'alert')
-  return sensors.length ? { ...state, notice: { kind, sensors, full } } : state
+  return sensors.length ? { ...state, notice: { kind, sensors, full, id } } : state
 }
-// The crew member answered the full screen alert. The alert stays in the page, in its small form.
+// The presenter closed the full screen form on all screens. The alert stays in the page, in its small form.
 export function seeNotice(state: HelmetState): HelmetState {
   return state.notice?.full ? { ...state, notice: { ...state.notice, full: false } } : state
 }

@@ -124,10 +124,5 @@
 /* A label of a red sensor has a soft red ring, so the eye finds it first. */
 .hm-3d-label.hm-text-alert, .hm-text-alert .hm-node-label { box-shadow: 0 0 0 3px color-mix(in srgb, var(--critical) 30%, transparent); }
 .hm-3d-label:hover:not(:disabled) { border-color: currentColor; }
-/* The action of the page: start the micro air jet. */
-.hm-info button.hm-jet { display: grid; gap: 2px; justify-items: center; width: 100%; min-height: 64px; padding: 10px 24px; border-radius: var(--radius-sm); font-size: 1.0625rem; font-weight: 600; }
-.hm-jet span { font-size: 0.8125rem; font-weight: 500; opacity: 0.75; }
 .hm-ref { margin: -4px 0 0; font-size: 0.75rem; color: var(--text-muted); }
 .hm-over-answers { display: flex; flex-wrap: wrap; gap: 12px; }
-.hm-over button.hm-over-second { background: transparent; color: inherit; }
-.hm-over button.hm-over-second:hover { background: rgba(16, 19, 28, 0.12); }

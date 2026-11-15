@@ -1,18 +1,22 @@
 // The full screen alert of the helmet page. The presenter sends it from the simulator page.
-// It covers the page until the crew member answers "I saw it", or until the presenter removes it.
-import { useEffect, useRef, type KeyboardEvent } from 'react'
+// It covers the page until the person answers "I saw it", or until the presenter removes it.
+// The answer closes the alert only on this screen, so one person does not close it for all.
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { LEVELS, SENSORS, type HelmetState } from '../../../shared/helmet.ts'
 import { fmt, t } from '../i18n.ts'
 
-export function NoticeOverlay({ helmet, onSeen, onJet }: { helmet: HelmetState; onSeen: () => void; onJet: () => void }) {
+export function NoticeOverlay({ helmet }: { helmet: HelmetState }) {
   const button = useRef<HTMLButtonElement>(null)
-  const open = Boolean(helmet.notice?.full)
+  // The alert that the person of this screen answered.
+  const [seen, setSeen] = useState<number | null>(null)
+  const open = Boolean(helmet.notice?.full) && helmet.notice?.id !== seen
   // Put the keyboard focus on the answer when the alert opens.
   useEffect(() => {
     if (open) button.current?.focus({ preventScroll: true })
   }, [open])
   const notice = helmet.notice
-  if (!notice?.full) return null
+  if (!notice || !open) return null
+  const onSeen = () => setSeen(notice.id)
 
   const jet = notice.kind === 'jet'
   const sensors = notice.sensors.map((id) => ({ id, label: t(SENSORS.find((sensor) => sensor.id === id)?.label ?? id), value: helmet.sensors[id].value }))
@@ -50,12 +54,7 @@ export function NoticeOverlay({ helmet, onSeen, onJet }: { helmet: HelmetState; 
           {jet ? t('Start a micro air jet, with a small flow, at these places to lower the CO2.') : t('A manual action can be necessary.')}
         </p>
         <div className="hm-over-answers">
-          {jet && (
-            <button type="button" ref={button} className="hm-over-seen" onClick={onJet}>
-              {t('Start the micro air jet')}
-            </button>
-          )}
-          <button type="button" ref={jet ? undefined : button} className={jet ? 'hm-over-seen hm-over-second' : 'hm-over-seen'} onClick={onSeen}>
+          <button type="button" ref={button} className="hm-over-seen" onClick={onSeen}>
             {t('I saw it')}
           </button>
         </div>

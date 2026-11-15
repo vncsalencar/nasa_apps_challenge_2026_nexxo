@@ -80,7 +80,6 @@ export const helmetTexts: Record<string, string> = {
   "CO2 pocket at the mouth": "Bolsão de CO2 na boca",
   "Critical alert behind the head": "Alerta crítico atrás da cabeça",
   "Start the micro air jet": "Acionar o micro jato de ar",
-  "Lowers the CO2 at the red sensors": "Reduz o CO2 nos sensores vermelhos",
   "Clinical reference: NASA-STD-3001, OCHMO-TB-004 (limits for a cabin)": "Ref. clínica: NASA-STD-3001 / OCHMO-TB-004 (limites de cabine)",
   "The micro air jet is on. CO2 goes down at these sensors: {names}.": "O micro jato de ar está ligado. O CO2 está caindo nestes sensores: {names}.",
   "Flow stable. All sensors are below the NASA limit of {value} mmHg (NASA-STD-3001).": "Fluxo estabilizado. Todos os sensores estão abaixo do limite da NASA de {value} mmHg (NASA-STD-3001).",
@@ -89,5 +88,5 @@ export const helmetTexts: Record<string, string> = {
   "All sensors go to the calm value at once.": "Todos os sensores vão para o valor normal de uma vez.",
   "The sensors at the mouth and at the neck rise step by step, to the red level.": "Os sensores da boca e do pescoço sobem passo a passo, até o nível vermelho.",
   "The sensor behind the head goes to 4.5 mmHg at once.": "O sensor atrás da cabeça vai para 4,5 mmHg de uma vez.",
-  "The micro air jet lowers the red sensors to {value} mmHg in {seconds} seconds. The helmet page has the same button.": "O micro jato de ar reduz os sensores vermelhos para {value} mmHg em {seconds} segundos. A página do capacete tem o mesmo botão.",
+  "The micro air jet lowers the red sensors to {value} mmHg in {seconds} seconds. Only this page can start it.": "O micro jato de ar reduz os sensores vermelhos para {value} mmHg em {seconds} segundos. Só esta página pode acioná-lo.",
 }

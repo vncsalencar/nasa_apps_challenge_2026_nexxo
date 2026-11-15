@@ -69,13 +69,13 @@ When a sensor is above the red limit (3.0 mmHg), the simulator page tells the pr
 The presenter also selects how the helmet page shows the alert:
 
 - **In the page:** a card above the status line.
-- **Full screen:** the alert covers the page with one color, the values of the sensors, and the answer "I saw it". The answer closes the full screen form, and the alert then stays in the page. The Escape key and a button of the simulator page close it too.
+- **Full screen:** the alert covers the page with one color, the values of the sensors, and the answer "I saw it". The answer, or the Escape key, closes the full screen form only on the screen of that person, so one person does not close it for all. The alert then stays in the page. A button of the simulator page closes the full screen form on all screens.
 
 The presenter can remove the alert. The alert also ends by itself when no sensor is above the limit.
 
 ## The micro air jet
 
-While a sensor is red, the helmet page has a button "Start the micro air jet". The full screen alert with the advice of a jet has the same button, and so has the simulator page.
+While a sensor is red, the simulator page has a button "Start the micro air jet". Only the simulator page can start the jet, so all helmet pages show the same values. The helmet page shows only the advice.
 
 The jet lowers each red sensor to 1.4 mmHg in 3 seconds. The status line says that the jet is on. After it, the status line says that the flow is stable and that all sensors are below the NASA limit of 3.0 mmHg.
 
@@ -137,7 +137,7 @@ The server sends each change to all open pages through one stream (`GET /api/hel
 | `set: { id, mmHg }` | Sets one sensor (`forehead`, `mouth`, `neck`, `back`) to a value from 0 to 8. |
 | `jet: true` | Starts the micro air jet at the red sensors. |
 | `notice` | `info` or `jet` sends an alert. `null` removes it. With `full: true`, the alert shows on the full screen. |
-| `seen: true` | Closes the full screen form of the alert. |
+| `seen: true` | Closes the full screen form of the alert on all screens. |
 
 The files `docs/health-indicator-map.md` and `docs/data-correlations.md` are background research from an earlier, wider version of the project. They describe features that this version does not have.
 

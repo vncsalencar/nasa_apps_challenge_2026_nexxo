@@ -34,14 +34,14 @@ export function changeHelmet(state: HelmetState, body: unknown): HelmetState | {
     next = started
   }
   // notice: a kind sends an alert to the helmet page, and null removes the alert.
-  // full: true shows this alert on the full screen. seen: true closes the full screen form.
+  // full: true shows this alert on the full screen. seen: true closes the full screen form on all screens.
   if ('notice' in input) {
     if (input.notice === null) {
       next = endNotice(next)
     } else {
       if (!NOTICE_KINDS.includes(input.notice as NoticeKind)) return { error: `notice must be null or one of ${NOTICE_KINDS.join(', ')}.` }
       if ('full' in input && typeof input.full !== 'boolean') return { error: 'full must be true or false.' }
-      const sent = sendNotice(next, input.notice as NoticeKind, input.full === true)
+      const sent = sendNotice(next, input.notice as NoticeKind, input.full === true, Date.now())
       if (sent === next) return { error: 'No sensor is above the red limit, so there is no alert to send.' }
       next = sent
     }
