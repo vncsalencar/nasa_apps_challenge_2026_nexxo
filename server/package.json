@@ -7,12 +7,11 @@
     "dev": "node --watch src/index.ts",
     "start": "node src/index.ts",
     "typecheck": "tsc --noEmit",
-    "fetch-osdr": "node scripts/fetch-osdr.ts"
+    "fetch-eda": "node scripts/fetch-eda.ts",
+    "validate-model": "node scripts/validate-model.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.8.0",
-    "express": "^5.1.0",
-    "zod": "^4.6.7"
+    "express": "^5.1.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
