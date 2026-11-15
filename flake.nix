@@ -1,5 +1,5 @@
 {
-  description = "Nexxo: health monitoring dashboard for astronauts";
+  description = "Nexxo: a CO2 exposure panel for astronauts";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 

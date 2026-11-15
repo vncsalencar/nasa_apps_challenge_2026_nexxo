@@ -4,13 +4,6 @@ services:
     build: .
     ports:
       - "3001:3001"
-    volumes:
-      - nexxo-data:/data
-    # Optional, for the insights from a language model. Docker passes these on if you set them.
-    environment:
-      - ANTHROPIC_API_KEY
-      - LOCAL_LLM_BASE_URL
-      - LOCAL_LLM_API_KEY
 
   # Development with live reload and no Node on your machine:
   # docker compose --profile dev up dev
@@ -31,5 +24,4 @@ services:
       - dev-node-modules:/app/node_modules
 
 volumes:
-  nexxo-data:
   dev-node-modules:
