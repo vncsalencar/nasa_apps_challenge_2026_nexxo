@@ -2,7 +2,13 @@
 export const helmetTexts: Record<string, string> = {
   Helmet: 'Capacete',
   'Loading the helmet sensors…': 'Carregando os sensores do capacete…',
-  'Space suit helmet with CO2 sensors, front view': 'Capacete de traje espacial com sensores de CO2, vista frontal',
+  'Astronaut in a space suit helmet with CO2 sensors, front view': 'Astronauta com capacete de traje espacial e sensores de CO2, vista frontal',
+  'Sensor: {name}': 'Sensor: {name}',
+  'Select a sensor to read it.': 'Selecione um sensor para ler o valor.',
+  'No action is necessary.': 'Nenhuma ação é necessária.',
+  'Check the air flow of the suit. Move the head away from this place of the helmet.': 'Verifique o fluxo de ar do traje. Afaste a cabeça deste ponto do capacete.',
+  'Raise the air flow of the suit now, lower the work load, and tell the crew. If the value stays high, end the work outside.':
+    'Aumente o fluxo de ar do traje agora, reduza a carga de trabalho e avise a tripulação. Se o valor continuar alto, encerre o trabalho externo.',
   'Sensor {name}: {value} mmHg, {level}': 'Sensor {name}: {value} mmHg, {level}',
   normal: 'normal',
   raised: 'elevado',

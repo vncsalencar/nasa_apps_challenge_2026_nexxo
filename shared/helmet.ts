@@ -3,16 +3,17 @@
 //
 // The sensors and their values are a simulation. No real suit data is behind them.
 
-// A sensor and its place on the drawing of the helmet (front view, 400 by 440).
+// A sensor and its place on the drawing of the helmet (front view, 400 by 460). The sensors
+// are inside the helmet, around the head of the astronaut.
 export type Sensor = { id: string; label: string; x: number; y: number }
 export const SENSORS: Sensor[] = [
-  { id: 'top', label: 'Top', x: 200, y: 62 },
-  { id: 'top-left', label: 'Top left', x: 104, y: 104 },
-  { id: 'top-right', label: 'Top right', x: 296, y: 104 },
-  { id: 'left', label: 'Left', x: 62, y: 206 },
-  { id: 'right', label: 'Right', x: 338, y: 206 },
-  { id: 'mouth', label: 'Mouth', x: 200, y: 268 },
-  { id: 'neck', label: 'Neck ring', x: 200, y: 352 },
+  { id: 'top', label: 'Top', x: 200, y: 94 },
+  { id: 'top-left', label: 'Top left', x: 124, y: 132 },
+  { id: 'top-right', label: 'Top right', x: 276, y: 132 },
+  { id: 'left', label: 'Left', x: 106, y: 232 },
+  { id: 'right', label: 'Right', x: 294, y: 232 },
+  { id: 'mouth', label: 'Mouth', x: 200, y: 284 },
+  { id: 'neck', label: 'Neck ring', x: 200, y: 330 },
 ]
 export const SENSOR_IDS = SENSORS.map((sensor) => sensor.id)
 

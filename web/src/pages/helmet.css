@@ -5,31 +5,53 @@
 .hm-banner-caution { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 60%, transparent); }
 .hm-banner-alert { color: var(--critical); border-color: var(--critical); }
 
-.hm-figure { width: min(100%, 560px, calc((100dvh - 300px) * 0.91)); min-width: min(100%, 280px); height: auto; overflow: visible; }
-.hm-ring { fill: var(--surface-2); stroke: var(--border-strong); stroke-width: 2; }
-.hm-shell { fill: var(--surface-2); stroke: var(--text-soft); stroke-width: 3; }
-.hm-visor { fill: #0a0e16; stroke: var(--border-strong); stroke-width: 3; }
-.hm-shine { fill: none; stroke: color-mix(in srgb, var(--text) 35%, transparent); stroke-width: 5; stroke-linecap: round; }
-.hm-head { fill: none; stroke: color-mix(in srgb, var(--text-muted) 55%, transparent); stroke-width: 2; stroke-linecap: round; }
+.hm-figure { width: min(100%, 520px, calc((100dvh - 330px) * 0.87)); min-width: min(100%, 280px); height: auto; overflow: visible; touch-action: pan-y; }
 
-/* A sensor: a light with a soft glow, and its value. The color follows the level. */
-.hm-sensor { color: var(--good); }
+/* Small movements. The head turns toward the pointer, the reflections move the other way, the
+   astronaut breathes and blinks, and a glint passes over the glass now and then. */
+.hm-helmet { transform: rotate(calc(var(--look-x, 0) * 1.6deg)); transform-origin: 200px 360px; transition: transform 0.25s ease-out; }
+.hm-head { transform: translate(calc(var(--look-x, 0) * 9px), calc(var(--look-y, 0) * 5px)); transition: transform 0.25s ease-out; }
+.hm-pupils { transform: translate(calc(var(--look-x, 0) * 2.4px), calc(var(--look-y, 0) * 1.8px)); transition: transform 0.2s ease-out; }
+.hm-reflect { transform: translate(calc(var(--look-x, 0) * -10px), calc(var(--look-y, 0) * -6px)); transition: transform 0.25s ease-out; }
+.hm-breath { animation: hm-breath 4.5s ease-in-out infinite; transform-origin: 200px 460px; }
+@keyframes hm-breath { 50% { transform: scale(1.012, 1.02); } }
+.hm-eyes { transform-box: fill-box; transform-origin: center; animation: hm-blink 5.2s infinite; }
+@keyframes hm-blink { 0%, 94%, 100% { transform: scaleY(1); } 96.5% { transform: scaleY(0.08); } }
+.hm-glint { animation: hm-glint 7s ease-in-out infinite; }
+@keyframes hm-glint { 0%, 55% { translate: 0 0; } 85%, 100% { translate: 620px 0; } }
+.hm-lamp { animation: hm-lamp 3.6s ease-in-out infinite; }
+@keyframes hm-lamp { 50% { opacity: 0.55; } }
+.hm-led { animation: hm-lamp 1.8s ease-in-out infinite; }
+
+/* A sensor: a light with a soft glow and its value. The color follows the level. */
+.hm-sensor { color: var(--good); cursor: pointer; outline: none; }
 .hm-sensor.hm-caution { color: var(--warning); }
 .hm-sensor.hm-alert { color: var(--critical); }
-.hm-light { fill: currentColor; stroke: var(--bg); stroke-width: 3; transition: fill 0.4s ease; }
-.hm-glow { fill: currentColor; opacity: 0.22; transition: fill 0.4s ease, opacity 0.4s ease; }
-.hm-caution .hm-glow { opacity: 0.32; }
-.hm-alert .hm-glow { opacity: 0.45; }
-/* A sensor with a value that rises now: its glow beats. */
+.hm-light { fill: currentColor; stroke: #0b0d12; stroke-width: 3; transition: fill 0.4s ease, r 0.15s ease; }
+.hm-glow { fill: currentColor; opacity: 0.25; transition: fill 0.4s ease, opacity 0.4s ease; }
+.hm-caution .hm-glow { opacity: 0.38; }
+.hm-alert .hm-glow { opacity: 0.5; }
+.hm-sensor:hover .hm-light, .hm-sensor:focus-visible .hm-light { r: 18.5px; }
+.hm-sensor:focus-visible .hm-light, .hm-on .hm-light { stroke: var(--text); }
+/* A sensor with a value that rises now: its glow beats, and small clouds of CO2 leave it. */
 .hm-rising .hm-glow { transform-box: fill-box; transform-origin: center; animation: hm-beat 1s ease-in-out infinite; }
-@keyframes hm-beat { 50% { transform: scale(1.45); opacity: 0.12; } }
-.hm-value { fill: #14120f; font-family: var(--font-body); font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.hm-up { fill: currentColor; font-size: 22px; font-weight: 700; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; }
+@keyframes hm-beat { 50% { transform: scale(1.5); opacity: 0.12; } }
+.hm-puffs circle { fill: currentColor; opacity: 0; animation: hm-puff 1.8s ease-out infinite; }
+.hm-puffs circle:nth-child(2) { animation-delay: 0.6s; }
+.hm-puffs circle:nth-child(3) { animation-delay: 1.2s; }
+@keyframes hm-puff { 0% { opacity: 0; translate: 0 6px; } 25% { opacity: 0.8; } 100% { opacity: 0; translate: 0 -22px; } }
+.hm-value { fill: #14120f; font-family: var(--font-body); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; pointer-events: none; }
+
+/* The text of the selected sensor. */
+.hm-detail { width: min(100%, 720px); min-height: 84px; display: grid; gap: 6px; align-content: center; padding: 14px 20px; border-radius: var(--radius-sm); background: var(--surface); }
+.hm-detail-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.hm-detail-value { font-variant-numeric: tabular-nums; font-weight: 500; }
+.hm-detail-step { font-size: 0.9375rem; line-height: 1.45; color: var(--text-soft); }
+.hm-text-normal { color: var(--good); }
+.hm-text-caution { color: var(--warning); }
+.hm-text-alert { color: var(--critical); }
 
 .hm-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px; font-size: 0.875rem; }
-.hm-key.hm-normal { color: var(--good); }
-.hm-key.hm-caution { color: var(--warning); }
-.hm-key.hm-high { color: var(--critical); }
 .hm-note { max-width: 72ch; font-size: 0.8125rem; line-height: 1.55; color: var(--text-muted); text-align: center; }
 
 /* The helmet controls of the simulator page. */
