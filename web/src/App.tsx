@@ -5,8 +5,10 @@ import { Simulator } from './pages/Simulator.tsx'
 
 // The trip page loads when a person opens it, because it brings the trajectory data and more charts.
 const Trip = lazy(() => import('./pages/Trip.tsx'))
+const Helmet = lazy(() => import('./pages/Helmet.tsx'))
 
-// The app has three pages. The CO2 page is the first page, and the trip page is at /trip.
+// The app has three pages for an audience: the CO2 page is the first page, the trip page is at
+// /trip, and the helmet page is at /helmet.
 // No page links to the simulator: the presenter types /simulator in the address bar.
 export function App() {
   return (
@@ -18,6 +20,14 @@ export function App() {
           element={
             <Suspense fallback={<div className="xp xp-wait" />}>
               <Trip />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/helmet"
+          element={
+            <Suspense fallback={<div className="xp xp-wait" />}>
+              <Helmet />
             </Suspense>
           }
         />

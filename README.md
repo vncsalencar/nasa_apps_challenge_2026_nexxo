@@ -267,6 +267,24 @@ More points that the research found:
 - The South Atlantic Anomaly on the map is an ellipse from limits for 500 km of altitude (1996). At the altitude of the station the region is smaller, so the map shows too many and too long passes.
 - A custom flight of 259 days or less is an exact Kepler path. A longer flight uses the 259-day path with a slower clock, which is not physical.
 
+## The helmet page
+
+The page `/helmet` is a small third page. It shows a drawing of a space suit helmet with 7 CO2 sensors: top, top left, top right, left, right, mouth, and neck ring. Each sensor is a light with its value in mmHg. A short alert above the drawing names the sensors where the CO2 rises or is high.
+
+| Light | CO2 partial pressure |
+|---|---|
+| Green | below 2.3 mmHg |
+| Yellow | 2.3 to 3.0 mmHg |
+| Red | above 3.0 mmHg |
+
+The tab "Helmet" of the simulator page controls it:
+
+- A slider for each sensor sets its value at once.
+- A routine raises some sensors step by step: "Top right rises", "Left side rises", "Mouth area rises", and "All sensors rise". The page then shows, for example, "CO2 levels are rising at these sensors: Top, Top right, Right."
+- "Back to calm" moves all sensors back step by step.
+
+The sensors and their values are a simulation. No real suit data is behind them. **Assumption:** the two color limits are those of a cabin (first reported symptoms at 2.3 mmHg, NASA limit of 3.0 mmHg for the 1-hour average), because we have no checked limit for the air inside a helmet. The calm value of 1.2 mmHg is our choice. The rules are in `shared/helmet.ts`, the server part is in `server/src/helmet.ts`, and the page is `web/src/pages/Helmet.tsx`.
+
 ## How to compare the two ideas
 
 Open `/` and `/trip` next to each other, and use `/simulator` with its two tabs. Give each idea a mark from 1 to 5 for each point.
@@ -368,7 +386,8 @@ Vite serves the React app on port 5173 and forwards `/api` to the server on port
 - the ground track of the station and the transfer orbit,
 - the dose of each day, the total dose, the storms, and the career limit,
 - the CO2 and O2 model: the steady state, the rise after a failure, the daily pattern, and the check against the record,
-- the effects on the body.
+- the effects on the body,
+- the helmet sensors and their routines.
 
 ## Deploy
 

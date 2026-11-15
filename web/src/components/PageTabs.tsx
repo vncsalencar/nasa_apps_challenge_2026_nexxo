@@ -12,6 +12,7 @@ export function PageTabs() {
         {t('CO2 exposure')}
       </NavLink>
       <NavLink to="/trip">{t('Trip forecast')}</NavLink>
+      <NavLink to="/helmet">{t('Helmet')}</NavLink>
     </nav>
   )
 }

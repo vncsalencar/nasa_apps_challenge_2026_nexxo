@@ -1,0 +1,46 @@
+/* The helmet page: the alert and the drawing. */
+.hm-main { display: grid; justify-items: center; gap: 18px; padding-top: 8px; }
+.hm-banner { width: min(100%, 720px); min-height: 64px; display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border); font-size: clamp(1rem, 0.9rem + 0.6vw, 1.25rem); font-weight: 500; line-height: 1.35; transition: border-color 0.3s ease, color 0.3s ease; }
+.hm-banner-normal { color: var(--good); }
+.hm-banner-caution { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 60%, transparent); }
+.hm-banner-alert { color: var(--critical); border-color: var(--critical); }
+
+.hm-figure { width: min(100%, 560px, calc((100dvh - 300px) * 0.91)); min-width: min(100%, 280px); height: auto; overflow: visible; }
+.hm-ring { fill: var(--surface-2); stroke: var(--border-strong); stroke-width: 2; }
+.hm-shell { fill: var(--surface-2); stroke: var(--text-soft); stroke-width: 3; }
+.hm-visor { fill: #0a0e16; stroke: var(--border-strong); stroke-width: 3; }
+.hm-shine { fill: none; stroke: color-mix(in srgb, var(--text) 35%, transparent); stroke-width: 5; stroke-linecap: round; }
+.hm-head { fill: none; stroke: color-mix(in srgb, var(--text-muted) 55%, transparent); stroke-width: 2; stroke-linecap: round; }
+
+/* A sensor: a light with a soft glow, and its value. The color follows the level. */
+.hm-sensor { color: var(--good); }
+.hm-sensor.hm-caution { color: var(--warning); }
+.hm-sensor.hm-alert { color: var(--critical); }
+.hm-light { fill: currentColor; stroke: var(--bg); stroke-width: 3; transition: fill 0.4s ease; }
+.hm-glow { fill: currentColor; opacity: 0.22; transition: fill 0.4s ease, opacity 0.4s ease; }
+.hm-caution .hm-glow { opacity: 0.32; }
+.hm-alert .hm-glow { opacity: 0.45; }
+/* A sensor with a value that rises now: its glow beats. */
+.hm-rising .hm-glow { transform-box: fill-box; transform-origin: center; animation: hm-beat 1s ease-in-out infinite; }
+@keyframes hm-beat { 50% { transform: scale(1.45); opacity: 0.12; } }
+.hm-value { fill: #14120f; font-family: var(--font-body); font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hm-up { fill: currentColor; font-size: 22px; font-weight: 700; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; }
+
+.hm-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 20px; font-size: 0.875rem; }
+.hm-key.hm-normal { color: var(--good); }
+.hm-key.hm-caution { color: var(--warning); }
+.hm-key.hm-high { color: var(--critical); }
+.hm-note { max-width: 72ch; font-size: 0.8125rem; line-height: 1.55; color: var(--text-muted); text-align: center; }
+
+/* The helmet controls of the simulator page. */
+.hc-routines { display: grid; gap: 8px; }
+.hc-routine { display: grid; gap: 2px; justify-items: start; text-align: left; padding: 12px 16px; min-height: 0; border-radius: var(--radius-sm); line-height: 1.4; }
+.hc-routine strong { font-weight: 600; }
+.hc-routine span { font-size: 0.8125rem; color: var(--text-muted); }
+.hc-routine[aria-pressed='true'] { border-color: var(--sim); background: color-mix(in srgb, var(--sim) 14%, var(--surface-2)); }
+.hc-sensor { display: grid; gap: 2px; padding: 8px 0; border-top: 1px solid var(--border); }
+.hc-sensor-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 0.9375rem; }
+.hc-sensor-value { font-variant-numeric: tabular-nums; }
+.hc-sensor-value.hm-normal { color: var(--good); }
+.hc-sensor-value.hm-caution { color: var(--warning); }
+.hc-sensor-value.hm-alert { color: var(--critical); }

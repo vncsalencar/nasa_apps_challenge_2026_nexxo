@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 import express, { type Response } from 'express'
 import { TRIP_SPEEDS } from '../../shared/trip/types.ts'
 import { HOLD_HOURS, PPM_LIMITS, SPEEDS, createEngine, type Message } from './engine.ts'
+import { addHelmet } from './helmet.ts'
 import { loadRecord } from './record.ts'
 
 const port = Number(process.env.PORT ?? 3001)
@@ -66,6 +67,9 @@ app.post('/api/control', (request, response) => {
   // The answer holds the settings of the two groups after the request.
   response.json(engine.settings())
 })
+
+// The helmet page has its own state, stream, and control route.
+addHelmet(app)
 
 app.use('/api', (_request, response) => {
   response.status(404).json({ error: 'This address does not exist.' })

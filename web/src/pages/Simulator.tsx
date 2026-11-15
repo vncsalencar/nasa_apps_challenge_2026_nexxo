@@ -12,6 +12,8 @@ import { SOURCE, useLive, type About, type Control, type Live } from '../live.ts
 import { CDRA_LABEL, PARAM_TEXT, WINDOW_LABEL } from '../texts.ts'
 import { TripControls, TripMission, TripNow } from '../trip/TripControls.tsx'
 import { formatDuration, formatTime, mmHgText, ppmText, viewOf, type View } from '../view.ts'
+import { HelmetControls, HelmetNow } from '../helmet/HelmetControls.tsx'
+import { useHelmet, type SendHelmet } from '../helmet/useHelmet.ts'
 import './simulator.css'
 
 // The range of the CO2 slider, in ppm. At 760 mmHg this is about 0.4 to 6.1 mmHg.
@@ -21,8 +23,8 @@ const QUICK = [...new Set([...BANDS.map((band) => band.from), LIMIT_1H_MMHG, 5.0
 const BUMPS = [-250, -50, 50, 250]
 const SEND_EACH_MS = 80
 
-// The two tabs. The page takes the tab from the address (/simulator?tab=trip), or remembers the last one.
-const TABS = ['co2', 'trip'] as const
+// The three tabs. The page takes the tab from the address (/simulator?tab=trip), or remembers the last one.
+const TABS = ['co2', 'trip', 'helmet'] as const
 type Tab = (typeof TABS)[number]
 const TAB_KEY = 'nexxo-sim-tab'
 const isTab = (value: string | null): value is Tab => TABS.some((tab) => tab === value)
@@ -43,6 +45,8 @@ type Parts = { live: Live; view: View; run: Control }
 
 export function Simulator() {
   const { live, online, control } = useLive()
+  // The helmet sensors have their own state on the server.
+  const { helmet, send: sendHelmet } = useHelmet()
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>(firstTab)
   // The value of the CO2 slider while a finger moves it. The page shows it before the server answers.
@@ -77,6 +81,11 @@ export function Simulator() {
       () => setError(null),
       (cause: Error) => setError(cause.message),
     )
+  const runHelmet: SendHelmet = (change) =>
+    sendHelmet(change).then(
+      () => setError(null),
+      (cause: Error) => setError(cause.message),
+    )
   const view = viewOf(live, localPpm ?? undefined)
   const { mode, playing, timeMs } = live.state
   const parts = { live, view, run }
@@ -94,6 +103,10 @@ export function Simulator() {
           </span>
           {tab === 'co2' ? (
             <ModeBadge mode={localPpm === null ? mode : 'simulated'} mission={live.about.source.mission} />
+          ) : tab === 'helmet' ? (
+            <span className="mode mode-simulated">
+              <span aria-hidden="true">▲</span> {t('Simulated')}
+            </span>
           ) : (
             trip && <TripMission trip={trip} />
           )}
@@ -113,6 +126,8 @@ export function Simulator() {
               {!online && ` · ${t('no connection')}`}
             </p>
           </>
+        ) : tab === 'helmet' ? (
+          helmet && <HelmetNow helmet={helmet} />
         ) : trip ? (
           <TripNow trip={trip} localDay={localDay} run={run} online={online} />
         ) : (
@@ -131,6 +146,9 @@ export function Simulator() {
         <button type="button" aria-pressed={tab === 'trip'} onClick={() => choose('trip')}>
           {t('Trip')}
         </button>
+        <button type="button" aria-pressed={tab === 'helmet'} onClick={() => choose('helmet')}>
+          {t('Helmet')}
+        </button>
       </div>
 
       {tab === 'co2' ? (
@@ -148,6 +166,8 @@ export function Simulator() {
             <span className="muted small">{t('Real data replay, 7 days into the record, 6 persons, CDRA on both beds, the default settings.')}</span>
           </section>
         </main>
+      ) : tab === 'helmet' ? (
+        <main className="sm-main">{helmet ? <HelmetControls helmet={helmet} run={runHelmet} /> : <p className="muted">{t('Loading the helmet sensors…')}</p>}</main>
       ) : trip ? (
         <main className="sm-main">
           <TripControls trip={trip} run={run} speeds={tripSpeeds} localDay={localDay} setLocalDay={setLocalDay} />
